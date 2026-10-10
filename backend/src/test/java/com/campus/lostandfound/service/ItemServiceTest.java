@@ -41,6 +41,7 @@ class ItemServiceTest {
     private ItemRepository itemRepository;
     private UserRepository userRepository;
     private ClaimRepository claimRepository;
+    private ImageStorageService imageStorageService;
     private ItemService itemService;
 
     private User owner;
@@ -53,7 +54,8 @@ class ItemServiceTest {
         itemRepository = mock(ItemRepository.class);
         userRepository = mock(UserRepository.class);
         claimRepository = mock(ClaimRepository.class);
-        itemService = new ItemService(itemRepository, userRepository, claimRepository);
+        imageStorageService = mock(ImageStorageService.class);
+        itemService = new ItemService(itemRepository, userRepository, claimRepository, imageStorageService);
 
         owner = fakeUser(1L, "Alice", Role.STUDENT);
         otherStudent = fakeUser(2L, "Bob", Role.STUDENT);
@@ -149,6 +151,61 @@ class ItemServiceTest {
         itemService.deleteItem(1L, 10L);
 
         verify(itemRepository).delete(item);
+    }
+
+    private static final String OLD_PICTURE = ImageStorageService.URL_PREFIX + "11111111-1111-1111-1111-111111111111.png";
+    private static final String NEW_PICTURE = ImageStorageService.URL_PREFIX + "22222222-2222-2222-2222-222222222222.png";
+
+    private ItemUpdateRequest updateRequestWithPicture(String imagePath) {
+        return new ItemUpdateRequest("Red Backpack", "Now red", "Bags", "Canteen", null, imagePath);
+    }
+
+    @Test
+    void removingThePictureDeletesTheOldFile() {
+        item.setImagePath(OLD_PICTURE);
+
+        itemService.updateItem(1L, 10L, updateRequestWithPicture(null));
+
+        verify(imageStorageService).deleteByImagePath(OLD_PICTURE);
+    }
+
+    @Test
+    void replacingThePictureDeletesTheOldFile() {
+        item.setImagePath(OLD_PICTURE);
+
+        itemService.updateItem(1L, 10L, updateRequestWithPicture(NEW_PICTURE));
+
+        verify(imageStorageService).deleteByImagePath(OLD_PICTURE);
+        verify(imageStorageService, never()).deleteByImagePath(NEW_PICTURE);
+    }
+
+    @Test
+    void keepingThePictureDeletesNothing() {
+        item.setImagePath(OLD_PICTURE);
+
+        itemService.updateItem(1L, 10L, updateRequestWithPicture(OLD_PICTURE));
+
+        verify(imageStorageService, never()).deleteByImagePath(any());
+    }
+
+    @Test
+    void deletingItemAlsoDeletesItsPicture() {
+        String path = ImageStorageService.URL_PREFIX + "11111111-1111-1111-1111-111111111111.png";
+        item.setImagePath(path);
+        when(claimRepository.existsByItemId(10L)).thenReturn(false);
+
+        itemService.deleteItem(1L, 10L);
+
+        verify(imageStorageService).deleteByImagePath(path);
+    }
+
+    @Test
+    void picturesAreKeptWhenDeleteIsRefused() {
+        item.setImagePath(ImageStorageService.URL_PREFIX + "11111111-1111-1111-1111-111111111111.png");
+        when(claimRepository.existsByItemId(10L)).thenReturn(true);
+
+        assertThrows(ConflictException.class, () -> itemService.deleteItem(1L, 10L));
+        verify(imageStorageService, never()).deleteByImagePath(any());
     }
 
     @Test

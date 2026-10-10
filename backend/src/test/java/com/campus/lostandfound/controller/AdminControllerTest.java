@@ -23,11 +23,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import com.campus.lostandfound.config.SecurityConfig;
+import com.campus.lostandfound.dto.AdminUserResponse;
 import com.campus.lostandfound.dto.ClaimResponse;
 import com.campus.lostandfound.dto.DashboardResponse;
 import com.campus.lostandfound.exception.ConflictException;
 import com.campus.lostandfound.model.ClaimStatus;
 import com.campus.lostandfound.model.ItemStatus;
+import com.campus.lostandfound.model.Role;
 import com.campus.lostandfound.service.AdminService;
 import com.campus.lostandfound.service.ClaimService;
 import com.campus.lostandfound.service.ItemService;
@@ -70,6 +72,22 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalUsers").value(12))
                 .andExpect(jsonPath("$.pendingClaims").value(4));
+    }
+
+    @Test
+    void adminSeesUserList() throws Exception {
+        when(adminService.listUsers(1L)).thenReturn(List.of(
+                new AdminUserResponse(2L, "Asha", "asha@campus.edu", Role.STUDENT, false, LocalDateTime.now())));
+
+        mockMvc.perform(get("/api/admin/users").with(user(1, "ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].email").value("asha@campus.edu"))
+                .andExpect(jsonPath("$[0].passwordHash").doesNotExist());
+    }
+
+    @Test
+    void studentGets403OnUserList() throws Exception {
+        mockMvc.perform(get("/api/admin/users").with(user(2, "STUDENT"))).andExpect(status().isForbidden());
     }
 
     @Test

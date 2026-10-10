@@ -5,6 +5,7 @@ import MainLayout from '../layouts/MainLayout.jsx'
 import AdminClaims from '../pages/AdminClaims.jsx'
 import AdminDashboard from '../pages/AdminDashboard.jsx'
 import AdminItems from '../pages/AdminItems.jsx'
+import AdminUsers from '../pages/AdminUsers.jsx'
 import EditItem from '../pages/EditItem.jsx'
 import Home from '../pages/Home.jsx'
 import ItemDetail from '../pages/ItemDetail.jsx'
@@ -46,6 +47,7 @@ export default function AppRoutes() {
             <Route index element={<AdminDashboard />} />
             <Route path="claims" element={<AdminClaims />} />
             <Route path="items" element={<AdminItems />} />
+            <Route path="users" element={<AdminUsers />} />
           </Route>
         </Route>
 

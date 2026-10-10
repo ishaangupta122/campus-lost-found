@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import Button from '../components/Button.jsx'
@@ -15,7 +15,7 @@ import { usePageTitle } from '../hooks/usePageTitle.js'
 import { closeItemAsAdmin, listAllItems } from '../services/adminService.js'
 import { getApiError } from '../services/api.js'
 import { markItemReturned } from '../services/itemService.js'
-import { formatDate } from '../utils/format.js'
+import { filterByPeriod, formatDate } from '../utils/format.js'
 
 const PAGE_SIZE = 25
 
@@ -46,7 +46,8 @@ export default function AdminItems() {
     setSearchParams(params, { replace: true })
   }, [applied, setSearchParams])
 
-  const { data: items, loading, error, reload } = useFetch(() => listAllItems(applied), [JSON.stringify(applied)])
+  const { data: fetched, loading, error, reload } = useFetch(() => listAllItems(applied), [JSON.stringify(applied)])
+  const items = useMemo(() => (fetched ? filterByPeriod(fetched, applied.period) : null), [fetched, applied.period])
   const [pending, setPending] = useState(null) // { action, item }
   const [working, setWorking] = useState(false)
 
@@ -181,7 +182,7 @@ export default function AdminItems() {
             {items.length > visible && (
               <div className="flex justify-center">
                 <Button variant="secondary" onClick={() => setVisible(visible + PAGE_SIZE)}>
-                  Show more
+                  Load more
                 </Button>
               </div>
             )}

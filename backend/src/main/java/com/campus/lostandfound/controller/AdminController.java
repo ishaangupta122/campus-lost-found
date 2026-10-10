@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.campus.lostandfound.dto.AdminUserResponse;
 import com.campus.lostandfound.dto.ClaimDecisionRequest;
 import com.campus.lostandfound.dto.ClaimResponse;
 import com.campus.lostandfound.dto.DashboardResponse;
@@ -44,6 +45,12 @@ public class AdminController {
     @GetMapping("/dashboard")
     public DashboardResponse dashboard(Authentication authentication) {
         return adminService.getDashboard(CurrentUser.id(authentication));
+    }
+
+    /** All registered users, newest first (no password data). */
+    @GetMapping("/users")
+    public List<AdminUserResponse> users(Authentication authentication) {
+        return adminService.listUsers(CurrentUser.id(authentication));
     }
 
     @GetMapping("/claims/pending")

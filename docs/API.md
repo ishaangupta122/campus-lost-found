@@ -50,6 +50,7 @@ Send the returned `imagePath` in the `imagePath` field when creating or editing 
 | Method | URL | Notes |
 |---|---|---|
 | GET | `/api/admin/dashboard` | Counts of users, lost/found items, items per status, pending claims |
+| GET | `/api/admin/users` | All registered users (id, name, email, role, googleAccount, createdAt), newest first; no password data |
 | GET | `/api/admin/claims/pending` | Waiting claims, oldest first |
 | PUT | `/api/admin/claims/{id}/decision` | `{"decision":"APPROVED"}` or `REJECTED` |
 | GET | `/api/admin/items` | All items, any status; filters `q`, `type`, `category`, `location`, `status` |

@@ -1,14 +1,18 @@
 package com.campus.lostandfound.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Sort;
 
 import com.campus.lostandfound.dto.DashboardResponse;
 import com.campus.lostandfound.exception.ForbiddenException;
@@ -17,6 +21,7 @@ import com.campus.lostandfound.model.ItemStatus;
 import com.campus.lostandfound.model.ItemType;
 import com.campus.lostandfound.model.Role;
 import com.campus.lostandfound.model.User;
+import com.campus.lostandfound.dto.AdminUserResponse;
 import com.campus.lostandfound.repository.ClaimRepository;
 import com.campus.lostandfound.repository.ItemRepository;
 import com.campus.lostandfound.repository.UserRepository;
@@ -71,5 +76,24 @@ class AdminServiceTest {
     @Test
     void studentCannotSeeDashboard() {
         assertThrows(ForbiddenException.class, () -> adminService.getDashboard(2L));
+    }
+
+    @Test
+    void adminSeesAllUsersWithoutPasswordData() {
+        User student = new User("Asha", "asha@campus.edu", "hash", Role.STUDENT);
+        User admin = new User("Admin", "admin@campus.edu", "hash", Role.ADMIN);
+        when(userRepository.findAll(any(Sort.class))).thenReturn(List.of(student, admin));
+
+        List<AdminUserResponse> users = adminService.listUsers(1L);
+
+        assertEquals(2, users.size());
+        assertEquals("asha@campus.edu", users.get(0).email());
+        assertEquals(Role.STUDENT, users.get(0).role());
+        assertFalse(users.get(0).googleAccount());
+    }
+
+    @Test
+    void studentCannotSeeUserList() {
+        assertThrows(ForbiddenException.class, () -> adminService.listUsers(2L));
     }
 }

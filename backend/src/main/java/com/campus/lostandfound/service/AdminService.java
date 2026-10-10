@@ -1,8 +1,12 @@
 package com.campus.lostandfound.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.campus.lostandfound.dto.AdminUserResponse;
 import com.campus.lostandfound.dto.DashboardResponse;
 import com.campus.lostandfound.exception.ForbiddenException;
 import com.campus.lostandfound.exception.UnauthorizedException;
@@ -38,11 +42,7 @@ public class AdminService {
     }
 
     public DashboardResponse getDashboard(Long adminId) {
-        User actor = userRepository.findById(adminId)
-                .orElseThrow(() -> new UnauthorizedException("Unknown user"));
-        if (actor.getRole() != Role.ADMIN) {
-            throw new ForbiddenException("Only admins can view the dashboard");
-        }
+        requireAdmin(adminId, "Only admins can view the dashboard");
         return new DashboardResponse(
                 userRepository.count(),
                 itemRepository.countByType(ItemType.LOST),
@@ -52,5 +52,21 @@ public class AdminService {
                 itemRepository.countByStatus(ItemStatus.RETURNED),
                 itemRepository.countByStatus(ItemStatus.CLOSED),
                 claimRepository.countByStatus(ClaimStatus.PENDING));
+    }
+
+    /** Every registered user (students and admins), newest first. */
+    public List<AdminUserResponse> listUsers(Long adminId) {
+        requireAdmin(adminId, "Only admins can view the user list");
+        return userRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
+                .map(AdminUserResponse::from)
+                .toList();
+    }
+
+    private void requireAdmin(Long adminId, String message) {
+        User actor = userRepository.findById(adminId)
+                .orElseThrow(() -> new UnauthorizedException("Unknown user"));
+        if (actor.getRole() != Role.ADMIN) {
+            throw new ForbiddenException(message);
+        }
     }
 }

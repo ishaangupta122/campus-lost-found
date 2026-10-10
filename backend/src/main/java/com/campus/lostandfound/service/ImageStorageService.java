@@ -51,6 +51,15 @@ public class ImageStorageService {
 
     public ImageStorageService(@Value("${app.upload.dir}") String uploadDir) {
         this.directory = Path.of(uploadDir).toAbsolutePath().normalize();
+        ensureDirectory();
+    }
+
+    /**
+     * Creates the upload folder when it is missing. Git does not keep empty folders, so a fresh
+     * clone has no uploads/ folder; it is also called before every save in case the folder is
+     * deleted while the server runs.
+     */
+    private void ensureDirectory() {
         try {
             Files.createDirectories(directory);
         } catch (IOException e) {
@@ -78,6 +87,7 @@ public class ImageStorageService {
         }
 
         String filename = UUID.randomUUID() + "." + extension;
+        ensureDirectory();
         try (InputStream in = file.getInputStream()) {
             Files.copy(in, directory.resolve(filename));
         } catch (IOException e) {
@@ -122,6 +132,9 @@ public class ImageStorageService {
     public int deleteOrphans(Predicate<String> isUsed, Duration minAge) {
         Instant cutoff = Instant.now().minus(minAge);
         int deleted = 0;
+        if (!Files.isDirectory(directory)) {
+            return 0; // nothing has been uploaded yet
+        }
         try (Stream<Path> files = Files.list(directory)) {
             for (Path file : (Iterable<Path>) files::iterator) {
                 String name = file.getFileName().toString();

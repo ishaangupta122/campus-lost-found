@@ -9,7 +9,7 @@ const tabClass = ({ isActive }) =>
   `${TAB} ${isActive ? 'bg-primary-soft text-primary hover:bg-primary-soft hover:text-primary' : ''}`
 
 /**
- * Shared by the three admin pages: a tab bar on top. It also loads the dashboard numbers once
+ * Shared by the admin pages: a tab bar on top. It also loads the dashboard numbers once
  * (for the "pending claims" count on the tab) and hands them to the pages below through the
  * Outlet context, together with a reload function to call after an admin changes something.
  */
@@ -32,6 +32,14 @@ export default function AdminLayout() {
         </NavLink>
         <NavLink to="/admin/items" className={tabClass}>
           All items
+        </NavLink>
+        <NavLink to="/admin/users" className={tabClass}>
+          Users
+          {stats?.totalUsers > 0 && (
+            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-sand px-1.5 text-xs text-ink-soft">
+              {stats.totalUsers}
+            </span>
+          )}
         </NavLink>
       </nav>
       <Outlet context={{ stats, statsError: error, reloadStats: reload }} />

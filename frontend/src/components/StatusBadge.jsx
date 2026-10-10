@@ -14,11 +14,11 @@ const STYLES = {
   REJECTED: 'bg-error-bg text-error-fg',
 }
 
-export default function StatusBadge({ value }) {
+export default function StatusBadge({ value, label }) {
   const style = STYLES[value] ?? STYLES.CLOSED
   return (
     <span className={`inline-block whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium leading-normal ${style}`}>
-      {formatLabel(value)}
+      {label ?? formatLabel(value)}
     </span>
   )
 }

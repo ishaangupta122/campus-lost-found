@@ -1,7 +1,8 @@
 import api, { cleanParams } from './api.js'
 
-// params can contain: q, type, category, location, status
-export const listItems = (params) => api.get('/api/items', { params: cleanParams(params) }).then((res) => res.data)
+// params can contain: q, type, category, location, status (the time filter `period` is applied in the browser)
+export const listItems = ({ period, ...params } = {}) =>
+  api.get('/api/items', { params: cleanParams(params) }).then((res) => res.data)
 
 export const getMyItems = () => api.get('/api/items/my').then((res) => res.data)
 

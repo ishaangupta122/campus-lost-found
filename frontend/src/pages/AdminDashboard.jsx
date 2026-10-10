@@ -75,7 +75,7 @@ export default function AdminDashboard() {
         <StatCard label="Closed" value={stats.closedItems} icon={Archive} to="/admin/items?status=CLOSED" />
         <StatCard label="Lost reports" value={stats.totalLostItems} icon={FileSearch} to="/admin/items?type=LOST" />
         <StatCard label="Found reports" value={stats.totalFoundItems} icon={CircleCheck} to="/admin/items?type=FOUND" />
-        <StatCard label="Registered users" value={stats.totalUsers} icon={Users} />
+        <StatCard label="Registered users" value={stats.totalUsers} icon={Users} to="/admin/users" />
         <StatCard label="Return rate" value={`${returnRate}%`} icon={PackageCheck} />
       </section>
 

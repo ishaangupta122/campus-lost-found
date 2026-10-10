@@ -5,9 +5,9 @@ import Button from './Button.jsx'
 import Input from './Input.jsx'
 import SegmentedControl from './SegmentedControl.jsx'
 import Select from './Select.jsx'
-import { CATEGORIES } from '../utils/constants.js'
+import { CATEGORIES, PERIOD_OPTIONS } from '../utils/constants.js'
 
-export const EMPTY_FILTERS = { q: '', type: '', category: '', location: '', status: '' }
+export const EMPTY_FILTERS = { q: '', type: '', category: '', location: '', status: '', period: '' }
 
 const TYPE_OPTIONS = [
   { value: '', label: 'All' },
@@ -16,16 +16,16 @@ const TYPE_OPTIONS = [
 ]
 
 /**
- * Search box + Lost/Found switch, with the less used filters (category, location, status)
- * tucked into a "Filters" panel. Search runs by itself as the user types, so there is no
+ * Search box + Lost/Found switch, with the other filters (category, location, time, status)
+ * in a "Filters" panel that is open by default and can be collapsed. Search runs by itself as the user types, so there is no
  * Search button. The parent owns the values.
  * allStatusesLabel: what the empty status choice means ("Open and claim pending" for the public list).
  */
 export default function ItemFilters({ value, onChange, allStatusesLabel, hideStatus = false, leading = null }) {
   const set = (field) => (event) => onChange({ ...value, [field]: event.target.value })
-  const extraFields = hideStatus ? ['category', 'location'] : ['category', 'location', 'status']
+  const extraFields = hideStatus ? ['category', 'location', 'period'] : ['category', 'location', 'period', 'status']
   const extraCount = extraFields.filter((field) => value[field]).length
-  const [open, setOpen] = useState(extraCount > 0)
+  const [open, setOpen] = useState(true) // the filter fields are visible by default
   const clearedValue = hideStatus ? { ...EMPTY_FILTERS, status: value.status } : EMPTY_FILTERS
   const anyFilter = Object.keys(value).some((key) => value[key] && !(hideStatus && key === 'status'))
 
@@ -77,7 +77,7 @@ export default function ItemFilters({ value, onChange, allStatusesLabel, hideSta
       )}
 
       {open && (
-        <div className={`grid gap-3 ${hideStatus ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
+        <div className={`grid gap-3 sm:grid-cols-2 ${hideStatus ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
           <Select label="Category" value={value.category} onChange={set('category')}>
             <option value="">Any category</option>
             {CATEGORIES.map((name) => (
@@ -87,6 +87,13 @@ export default function ItemFilters({ value, onChange, allStatusesLabel, hideSta
             ))}
           </Select>
           <Input label="Location" placeholder="e.g. Library" value={value.location} onChange={set('location')} />
+          <Select label="Reported" value={value.period} onChange={set('period')}>
+            {PERIOD_OPTIONS.map(({ value: optionValue, label }) => (
+              <option key={optionValue} value={optionValue}>
+                {label}
+              </option>
+            ))}
+          </Select>
           {!hideStatus && (
           <Select label="Status" value={value.status} onChange={set('status')}>
             <option value="">{allStatusesLabel}</option>

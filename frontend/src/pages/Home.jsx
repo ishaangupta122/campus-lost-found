@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 
 import Button from '../components/Button.jsx'
 import ItemCard from '../components/ItemCard.jsx'
+import ItemTable from '../components/ItemTable.jsx'
 import SegmentedControl from '../components/SegmentedControl.jsx'
 import ItemFilters, { EMPTY_FILTERS } from '../components/ItemFilters.jsx'
 import { ItemGridSkeleton } from '../components/Skeletons.jsx'
@@ -13,8 +14,25 @@ import { useDebounced } from '../hooks/useDebounced.js'
 import { useFetch } from '../hooks/useFetch.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { listItems } from '../services/itemService.js'
+import { filterByPeriod } from '../utils/format.js'
 
-const PAGE_SIZE = 12
+// How many items are shown at first and added by each "Load more" click.
+const PAGE_SIZE = { cards: 9, table: 20 }
+const VIEW_KEY = 'lf_items_view'
+
+const VIEWS = [
+  { value: 'cards', label: 'Cards' },
+  { value: 'table', label: 'Table' },
+]
+
+// The chosen view is remembered in this browser; storage can be blocked, so never rely on it.
+function readView() {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'table' ? 'table' : 'cards'
+  } catch {
+    return 'cards'
+  }
+}
 
 const TABS = [
   { value: '', label: 'Available items' },
@@ -31,15 +49,30 @@ export default function Home() {
   usePageTitle('')
   const { isAuthenticated, isAdmin } = useAuth()
   const [filters, setFilters] = useState(EMPTY_FILTERS)
-  const [visible, setVisible] = useState(PAGE_SIZE)
+  const [view, setView] = useState(readView)
+  const [visible, setVisible] = useState(PAGE_SIZE[readView()])
 
   // Search after the user stops typing; the list reloads whenever the filters change.
   const applied = useDebounced(filters)
-  const { data: items, loading, error, reload } = useFetch(() => listItems(applied), [JSON.stringify(applied)])
+  const { data: fetched, loading, error, reload } = useFetch(() => listItems(applied), [JSON.stringify(applied)])
+  // The time filter is applied here, on the report date of the loaded items.
+  const items = useMemo(() => (fetched ? filterByPeriod(fetched, applied.period) : null), [fetched, applied.period])
+
+  const pageSize = PAGE_SIZE[view]
 
   const changeFilters = (next) => {
     setFilters(next)
-    setVisible(PAGE_SIZE)
+    setVisible(pageSize)
+  }
+
+  const changeView = (next) => {
+    setView(next)
+    setVisible(PAGE_SIZE[next])
+    try {
+      localStorage.setItem(VIEW_KEY, next)
+    } catch {
+      /* the choice just is not remembered */
+    }
   }
 
   return (
@@ -76,7 +109,7 @@ export default function Home() {
       )}
 
       <section id="items" className="flex flex-col gap-4">
-                <ItemFilters value={filters} onChange={changeFilters} allStatusesLabel="Open and claim pending"
+        <ItemFilters value={filters} onChange={changeFilters} allStatusesLabel="Open and claim pending"
           hideStatus
           leading={
             <SegmentedControl
@@ -99,18 +132,27 @@ export default function Home() {
         )}
         {items && items.length > 0 && (
           <>
-            <p className="text-sm text-ink-soft" aria-live="polite">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
-            </p>
-            <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${loading ? 'opacity-60' : ''}`}>
-              {items.slice(0, visible).map((item) => (
-                <ItemCard key={item.id} item={item} />
-              ))}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-ink-soft" aria-live="polite">
+                Showing {Math.min(visible, items.length)} of {items.length} {items.length === 1 ? 'item' : 'items'}
+              </p>
+              <SegmentedControl label="View" options={VIEWS} value={view} onChange={changeView} />
             </div>
+
+            {view === 'table' ? (
+              <ItemTable items={items.slice(0, visible)} dimmed={loading} />
+            ) : (
+              <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${loading ? 'opacity-60' : ''}`}>
+                {items.slice(0, visible).map((item) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
+
             {items.length > visible && (
               <div className="flex justify-center">
-                <Button variant="secondary" onClick={() => setVisible(visible + PAGE_SIZE)}>
-                  Show more
+                <Button variant="secondary" onClick={() => setVisible(visible + pageSize)}>
+                  Load more
                 </Button>
               </div>
             )}

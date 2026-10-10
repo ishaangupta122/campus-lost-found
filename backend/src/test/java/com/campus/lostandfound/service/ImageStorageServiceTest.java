@@ -105,6 +105,19 @@ class ImageStorageServiceTest {
     }
 
     @Test
+    void createsTheUploadFolderWhenItIsMissing() throws Exception {
+        Path missing = folder.resolve("nested").resolve("uploads");
+        ImageStorageService fresh = new ImageStorageService(missing.toString());
+        assertTrue(Files.isDirectory(missing));      // created at startup
+
+        Files.delete(missing);                        // folder removed while the server runs
+        String imagePath = fresh.store(upload("a.png", PNG));
+
+        assertTrue(Files.isDirectory(missing));      // re-created before saving
+        assertTrue(Files.exists(missing.resolve(imagePath.substring(ImageStorageService.URL_PREFIX.length()))));
+    }
+
+    @Test
     void deleteByImagePathRemovesOurFilesAndIgnoresOtherValues() throws Exception {
         String imagePath = service.store(upload("a.png", PNG));
         Path file = fileOf(imagePath);

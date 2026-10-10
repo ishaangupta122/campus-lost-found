@@ -8,6 +8,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.campus.lostandfound.dto.ItemCreateRequest;
 import com.campus.lostandfound.dto.ItemResponse;
@@ -46,12 +48,14 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ClaimRepository claimRepository;
+    private final ImageStorageService imageStorageService;
 
     public ItemService(ItemRepository itemRepository, UserRepository userRepository,
-                       ClaimRepository claimRepository) {
+                       ClaimRepository claimRepository, ImageStorageService imageStorageService) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.claimRepository = claimRepository;
+        this.imageStorageService = imageStorageService;
     }
 
     public ItemResponse createItem(Long userId, ItemCreateRequest request) {
@@ -123,8 +127,14 @@ public class ItemService {
         if (request.reportDate() != null) {
             item.setReportDate(request.reportDate());
         }
+        String oldImagePath = item.getImagePath();
         item.setImagePath(request.imagePath());
-        return ItemResponse.from(itemRepository.save(item));
+        ItemResponse response = ItemResponse.from(itemRepository.save(item));
+        // The picture was removed or replaced: its old file is no longer needed.
+        if (oldImagePath != null && !oldImagePath.equals(request.imagePath())) {
+            deleteImageAfterCommit(oldImagePath);
+        }
+        return response;
     }
 
     public void deleteItem(Long userId, Long itemId) {
@@ -134,7 +144,30 @@ public class ItemService {
         if (claimRepository.existsByItemId(itemId)) {
             throw new ConflictException("This report has claims, so it cannot be deleted. Close it instead.");
         }
+        String imagePath = item.getImagePath();
         itemRepository.delete(item);
+        deleteImageAfterCommit(imagePath);
+    }
+
+    /**
+     * Removes the picture file only after the database delete is committed, so a rolled-back
+     * delete never leaves a report whose picture is gone. Without a transaction (unit tests)
+     * it deletes straight away.
+     */
+    private void deleteImageAfterCommit(String imagePath) {
+        if (imagePath == null) {
+            return;
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    imageStorageService.deleteByImagePath(imagePath);
+                }
+            });
+        } else {
+            imageStorageService.deleteByImagePath(imagePath);
+        }
     }
 
     /** Owner or admin closes a report (e.g. the owner found the item, or an admin removes a bad post). */
