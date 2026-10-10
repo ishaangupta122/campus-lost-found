@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="No photo">
+  <rect width="640" height="360" fill="#f1ece3"/>
+  <g transform="translate(320 170)" fill="none" stroke="#c7bdb0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-46 -22 0 -44 46 -22 46 28 0 50 -46 28Z"/>
+    <path d="M-46 -22 0 0 46 -22M0 0V50"/>
+  </g>
+  <g transform="translate(364 196)" fill="#f1ece3" stroke="#8a2020" stroke-width="7" stroke-linecap="round">
+    <circle r="22"/>
+    <path d="M17 17 38 38"/>
+  </g>
+</svg>
