@@ -3,7 +3,7 @@ export function ItemGridSkeleton({ count = 6 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Loading items">
       {Array.from({ length: count }, (_, index) => (
-        <div key={index} className="animate-pulse overflow-hidden rounded-card bg-card shadow-card">
+        <div key={index} className="animate-pulse overflow-hidden rounded-md border border-line bg-card">
           <div className="aspect-video bg-sand" />
           <div className="flex flex-col gap-3 p-4">
             <div className="h-4 w-1/3 rounded bg-sand" />

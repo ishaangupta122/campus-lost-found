@@ -43,12 +43,14 @@ export default function ImageUpload({ value, onChange, error }) {
   const message = localError || error
 
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-sm font-medium">Photo (optional)</span>
+    <div className="flex flex-col gap-2">
+      <h2 className="text-base">
+        Photo <span className="text-sm font-normal text-ink-soft">(optional)</span>
+      </h2>
 
       {value ? (
         <div className="flex flex-1 flex-col gap-2">
-          <img src={imageUrl(value)} alt="Selected item" className="h-36 w-full rounded-control object-cover" />
+          <img src={imageUrl(value)} alt="Selected item" className="aspect-4/3 w-full rounded-control object-cover" />
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={() => inputRef.current?.click()} loading={uploading}>
               Replace
@@ -73,17 +75,17 @@ export default function ImageUpload({ value, onChange, error }) {
             handleFile(event.dataTransfer.files[0])
           }}
           disabled={uploading}
-          className={`flex min-h-36 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-control border-2 border-dashed px-4 py-3 text-center transition-colors ${
-            dragging ? 'border-primary bg-primary-soft' : 'border-line bg-sand/50 hover:border-ink-soft'
+          className={`flex aspect-4/3 w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-control border-2 border-dashed px-4 py-3 text-center transition-colors ${
+            dragging ? 'border-primary bg-primary-soft' : 'border-primary/40 bg-canvas hover:border-primary hover:bg-primary-soft/50'
           }`}
         >
           {uploading ? (
             <LoaderCircle className="animate-spin text-ink-soft" size={24} aria-hidden="true" />
           ) : (
-            <ImagePlus className="text-ink-soft" size={24} aria-hidden="true" />
+            <ImagePlus className="text-primary" size={26} aria-hidden="true" />
           )}
           <span className="text-sm font-medium">{uploading ? 'Uploading...' : 'Add a photo'}</span>
-          <span className="text-xs text-ink-soft">Click or drop here. Up to {MAX_IMAGE_MB} MB</span>
+          <span className="text-sm text-ink-soft">Click or drop here. Up to {MAX_IMAGE_MB} MB</span>
         </button>
       )}
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { CircleCheck, Pencil, Plus, Trash2 } from 'lucide-react'
 
 import Button from '../components/Button.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
@@ -65,16 +65,27 @@ export default function MyItems() {
               <ItemCard key={item.id} item={item}>
                 {active && (
                   <>
-                    <Button size="sm" variant="secondary" to={`/items/${item.id}/edit`}>
-                      Edit
+                    <Button size="sm" variant="soft" to={`/items/${item.id}/edit`} title="Edit this report">
+                      <Pencil size={14} aria-hidden="true" /> Edit
                     </Button>
-                    <Button size="sm" variant="secondary" onClick={() => setPending({ action: 'close', item })}>
-                      Close
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      title="Close this report (no longer shown publicly)"
+                      onClick={() => setPending({ action: 'close', item })}
+                    >
+                      <CircleCheck size={14} aria-hidden="true" /> Close
                     </Button>
                   </>
                 )}
-                <Button size="sm" variant="ghost" onClick={() => setPending({ action: 'delete', item })}>
-                  Delete
+                <Button
+                  size="sm"
+                  variant="dangerSoft"
+                  className="ml-auto"
+                  title="Delete this report"
+                  onClick={() => setPending({ action: 'delete', item })}
+                >
+                  <Trash2 size={14} aria-hidden="true" /> Delete
                 </Button>
               </ItemCard>
             )

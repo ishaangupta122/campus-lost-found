@@ -32,7 +32,7 @@ export default function EditItem() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
+    <div>
       <PageHeader title="Edit report" subtitle="The type (lost or found) cannot be changed." />
       <ItemForm item={item} submitLabel="Save changes" onSubmit={handleUpdate} onCancel={() => navigate(-1)} />
     </div>

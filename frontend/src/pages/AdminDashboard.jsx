@@ -1,9 +1,9 @@
 import { Link, useOutletContext } from 'react-router-dom'
-import { Archive, ArrowRight, CircleCheck, Clock, FileSearch, HandHelping, PackageCheck, PackageOpen, Users } from 'lucide-react'
+import { Archive, CircleCheck, Clock, FileSearch, HandHelping, PackageCheck, PackageOpen, Percent, Users } from 'lucide-react'
 
 import Button from '../components/Button.jsx'
-import ClaimCard from '../components/ClaimCard.jsx'
 import PageHeader from '../components/PageHeader.jsx'
+import Panel, { PanelLink } from '../components/Panel.jsx'
 import StatCard from '../components/StatCard.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
 import { ErrorMessage, LoadingState } from '../components/States.jsx'
@@ -12,12 +12,12 @@ import { usePageTitle } from '../hooks/usePageTitle.js'
 import { getPendingClaims, listAllItems } from '../services/adminService.js'
 import { formatDate } from '../utils/format.js'
 
-// Segments of the "items by status" bar. (Full class names so Tailwind finds them.)
+// Segments of the "items by status" bar: shades of the brand red, plus green and grey. (Full class names so Tailwind finds them.)
 const STATUS_BARS = [
-  { key: 'openItems', label: 'Open', bar: 'bg-ok-fg', dot: 'bg-ok-fg' },
-  { key: 'claimPendingItems', label: 'Claim pending', bar: 'bg-warn-fg', dot: 'bg-warn-fg' },
-  { key: 'returnedItems', label: 'Returned', bar: 'bg-info-fg', dot: 'bg-info-fg' },
-  { key: 'closedItems', label: 'Closed', bar: 'bg-stone-fg', dot: 'bg-stone-fg' },
+  { key: 'openItems', label: 'Open', color: 'bg-primary' },
+  { key: 'claimPendingItems', label: 'Claim pending', color: 'bg-primary/50' },
+  { key: 'returnedItems', label: 'Returned', color: 'bg-ok-fg' },
+  { key: 'closedItems', label: 'Closed', color: 'bg-stone-fg/35' },
 ]
 
 export default function AdminDashboard() {
@@ -34,12 +34,12 @@ export default function AdminDashboard() {
   const latest = [...(allItems ?? [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Admin dashboard" subtitle="A quick look at what is happening on campus." />
 
       {/* What needs the admin's attention right now */}
       <section
-        className={`flex flex-wrap items-center justify-between gap-3 rounded-card border p-4 ${
+        className={`flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3 ${
           stats.pendingClaims > 0 ? 'border-warn-fg/30 bg-warn-bg' : 'border-line bg-card'
         }`}
       >
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
             <CircleCheck size={24} className="text-ok-fg" aria-hidden="true" />
           )}
           <div>
-            <h2 className="text-lg">
+            <h2 className="text-base">
               {stats.pendingClaims > 0
                 ? `${stats.pendingClaims} ${stats.pendingClaims === 1 ? 'claim is' : 'claims are'} waiting for review`
                 : 'All caught up'}
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
         {stats.pendingClaims > 0 && <Button to="/admin/claims">Review claims</Button>}
       </section>
 
-      <section aria-label="Numbers" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section aria-label="Numbers" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Open items" value={stats.openItems} icon={PackageOpen} to="/admin/items?status=OPEN" />
         <StatCard
           label="Claim pending"
@@ -76,77 +76,76 @@ export default function AdminDashboard() {
         <StatCard label="Lost reports" value={stats.totalLostItems} icon={FileSearch} to="/admin/items?type=LOST" />
         <StatCard label="Found reports" value={stats.totalFoundItems} icon={CircleCheck} to="/admin/items?type=FOUND" />
         <StatCard label="Registered users" value={stats.totalUsers} icon={Users} to="/admin/users" />
-        <StatCard label="Return rate" value={`${returnRate}%`} icon={PackageCheck} />
+        <StatCard label="Return rate" value={`${returnRate}%`} icon={Percent} />
       </section>
 
-      <section className="flex flex-col gap-2 rounded-card bg-card shadow-card p-4">
-        <h2 className="text-lg">Items by status</h2>
-        {totalItems === 0 ? (
-          <p className="text-sm text-ink-soft">No items have been reported yet.</p>
-        ) : (
-          <>
-            <div className="flex h-3 overflow-hidden rounded-full bg-sand" role="img" aria-label="Items by status">
-              {STATUS_BARS.map(({ key, label, bar }) =>
-                stats[key] > 0 ? (
-                  <span
-                    key={key}
-                    className={bar}
-                    style={{ width: `${(stats[key] / totalItems) * 100}%` }}
-                    title={`${label}: ${stats[key]}`}
-                  />
-                ) : null,
-              )}
-            </div>
-            <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-soft">
-              {STATUS_BARS.map(({ key, label, dot }) => (
-                <li key={key} className="inline-flex items-center gap-2">
-                  <span className={`size-2.5 rounded-full ${dot}`} /> {label} <strong className="text-ink">{stats[key]}</strong>
+      <Panel title="Items by status">
+        <div className="flex flex-col gap-3 px-4 py-4">
+          {totalItems === 0 ? (
+            <p className="text-sm text-ink-soft">No items have been reported yet.</p>
+          ) : (
+            <>
+              <div className="flex h-3.5 gap-0.5 overflow-hidden rounded-full bg-sand" role="img" aria-label="Items by status">
+                {STATUS_BARS.map(({ key, label, color }) =>
+                  stats[key] > 0 ? (
+                    <span
+                      key={key}
+                      className={color}
+                      style={{ width: `${(stats[key] / totalItems) * 100}%` }}
+                      title={`${label}: ${stats[key]}`}
+                    />
+                  ) : null,
+                )}
+              </div>
+              <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-ink-soft">
+                {STATUS_BARS.map(({ key, label, color }) => (
+                  <li key={key} className="inline-flex items-center gap-2">
+                    <span className={`size-3 rounded-full ${color}`} /> {label} <strong className="text-ink">{stats[key]}</strong>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </Panel>
+
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <Panel title="Waiting for review" action={<PanelLink to="/admin/claims">All claims</PanelLink>}>
+          {pending && pending.length === 0 && <p className="px-4 py-4 text-sm text-ink-soft">Nothing is waiting.</p>}
+          {pending && pending.length > 0 && (
+            <ul className="divide-y divide-line">
+              {pending.slice(0, 5).map((claim) => (
+                <li key={claim.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <Link to="/admin/claims" className="block truncate font-medium text-ink">
+                      {claim.itemName}
+                    </Link>
+                    <p className="truncate text-sm text-ink-soft">
+                      {claim.claimantName} - {formatDate(claim.createdAt)}
+                    </p>
+                  </div>
+                  <StatusBadge value={claim.status} />
                 </li>
               ))}
             </ul>
-          </>
-        )}
-      </section>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg">Waiting for review</h2>
-            <Link to="/admin/claims" className="inline-flex items-center gap-1 text-sm">
-              All claims <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          </div>
-          {pending && pending.length === 0 && (
-            <p className="rounded-card bg-card shadow-card p-4 text-sm text-ink-soft">Nothing is waiting.</p>
           )}
-          {pending?.slice(0, 3).map((claim) => (
-            <ClaimCard key={claim.id} claim={claim} showClaimant />
-          ))}
-        </section>
+        </Panel>
 
-        <section className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg">Latest reports</h2>
-            <Link to="/admin/items" className="inline-flex items-center gap-1 text-sm">
-              All items <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          </div>
-          {allItems && latest.length === 0 && (
-            <p className="rounded-card bg-card shadow-card p-4 text-sm text-ink-soft">No reports yet.</p>
-          )}
+        <Panel title="Latest reports" action={<PanelLink to="/admin/items">All items</PanelLink>}>
+          {allItems && latest.length === 0 && <p className="px-4 py-4 text-sm text-ink-soft">No reports yet.</p>}
           {latest.length > 0 && (
-            <ul className="divide-y divide-line rounded-card bg-card shadow-card">
+            <ul className="divide-y divide-line">
               {latest.map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <Link to={`/items/${item.id}`} className="block truncate font-medium text-ink">
                       {item.itemName}
                     </Link>
-                    <p className="text-xs text-ink-soft">
+                    <p className="truncate text-sm text-ink-soft">
                       {item.reporterName} - {formatDate(item.createdAt)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex shrink-0 gap-2">
                     <StatusBadge value={item.type} />
                     <StatusBadge value={item.status} />
                   </div>
@@ -154,7 +153,7 @@ export default function AdminDashboard() {
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
       </div>
     </div>
   )

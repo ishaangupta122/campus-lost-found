@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { ArrowDown, ArrowRight, Plus } from 'lucide-react'
 
 import Button from '../components/Button.jsx'
 import ItemCard from '../components/ItemCard.jsx'
@@ -34,23 +34,23 @@ function readView() {
   }
 }
 
-const TABS = [
-  { value: '', label: 'Available items' },
-  { value: 'RETURNED', label: 'Returned items' },
-]
+// The public list shows open items; "Returned" is the only other choice offered here.
+const STATUS_OPTIONS = [{ value: 'RETURNED', label: 'Returned' }]
 
 const STEPS = [
   { title: 'Report', text: 'Post what you lost or found.' },
-  { title: 'Match', text: 'Claim it with a detail only you know.' },
-  { title: 'Return', text: 'An admin approves and you collect it.' },
+  { title: 'Claim', text: 'Name a detail only you know.' },
+  { title: 'Collect', text: 'Admin approves, you collect.' },
 ]
 
 export default function Home() {
   usePageTitle('')
   const { isAuthenticated, isAdmin } = useAuth()
   const [filters, setFilters] = useState(EMPTY_FILTERS)
-  const [view, setView] = useState(readView)
-  const [visible, setVisible] = useState(PAGE_SIZE[readView()])
+  const [storedView, setView] = useState(readView)
+  // Only admins get the table view; everyone else always sees cards.
+  const view = isAdmin ? storedView : 'cards'
+  const [visible, setVisible] = useState(PAGE_SIZE[view])
 
   // Search after the user stops typing; the list reloads whenever the filters change.
   const applied = useDebounced(filters)
@@ -76,11 +76,11 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <section className="flex flex-col gap-4 rounded-card bg-primary p-5 text-on-primary sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-4 rounded-md bg-primary p-5 text-on-primary sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div>
-          <h1 className="text-on-primary">Lost something? Let&apos;s find it.</h1>
-          <p className="mt-1 text-sm text-on-primary/80">Browse what has been found on campus and claim what is yours.</p>
+          <h1 className="text-on-primary">Lost or found something on campus?</h1>
+          <p className="mt-1 text-sm text-on-primary/80">Report it here, or search the list and claim what is yours.</p>
         </div>
         {!isAdmin && (
           <Link
@@ -93,32 +93,39 @@ export default function Home() {
       </section>
 
       {!isAuthenticated && (
-        <ol aria-label="How it works" className="grid gap-4 sm:grid-cols-3 sm:gap-6">
+        <ol
+          aria-label="How it works"
+          className="flex flex-col gap-3 rounded-md border border-line bg-card px-5 py-4 lg:flex-row lg:items-center lg:justify-between"
+        >
           {STEPS.map(({ title, text }, index) => (
-            <li key={title} className="flex items-center gap-3">
-              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
-                {index + 1}
-              </span>
-              <div className="leading-snug">
-                <h2 className="text-sm">{title}</h2>
-                <p className="text-sm text-ink-soft">{text}</p>
-              </div>
-            </li>
+            <Fragment key={title}>
+              <li className="flex items-center gap-3">
+                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
+                  {index + 1}
+                </span>
+                <div>
+                  <p className="text-sm leading-5 font-semibold text-ink">{title}</p>
+                  <p className="text-sm leading-5 text-ink-soft">{text}</p>
+                </div>
+              </li>
+              {index < STEPS.length - 1 && (
+                <li aria-hidden="true" className="flex shrink-0 justify-start pl-1.5 text-primary lg:p-0">
+                  <ArrowRight size={22} className="hidden lg:block" />
+                  <ArrowDown size={22} className="lg:hidden" />
+                </li>
+              )}
+            </Fragment>
           ))}
         </ol>
       )}
 
       <section id="items" className="flex flex-col gap-4">
-        <ItemFilters value={filters} onChange={changeFilters} allStatusesLabel="Open and claim pending"
-          hideStatus
-          leading={
-            <SegmentedControl
-              label="Show"
-              options={TABS}
-              value={filters.status}
-              onChange={(status) => changeFilters({ ...filters, status })}
-            />
-          }
+        <ItemFilters
+          value={filters}
+          onChange={changeFilters}
+          allStatusesLabel="Open and claim pending"
+          statusOptions={STATUS_OPTIONS}
+          defaultOpen={false}
         />
 
         {error && <ErrorMessage message={error} onRetry={reload} />}
@@ -136,7 +143,7 @@ export default function Home() {
               <p className="text-sm text-ink-soft" aria-live="polite">
                 Showing {Math.min(visible, items.length)} of {items.length} {items.length === 1 ? 'item' : 'items'}
               </p>
-              <SegmentedControl label="View" options={VIEWS} value={view} onChange={changeView} />
+              {isAdmin && <SegmentedControl label="View" options={VIEWS} value={view} onChange={changeView} />}
             </div>
 
             {view === 'table' ? (
@@ -150,8 +157,8 @@ export default function Home() {
             )}
 
             {items.length > visible && (
-              <div className="flex justify-center">
-                <Button variant="secondary" onClick={() => setVisible(visible + pageSize)}>
+              <div className="flex justify-center pt-4 pb-6">
+                <Button variant="secondary" className="px-8" onClick={() => setVisible(visible + pageSize)}>
                   Load more
                 </Button>
               </div>

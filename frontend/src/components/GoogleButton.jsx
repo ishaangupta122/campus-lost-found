@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import Button from './Button.jsx'
 
@@ -27,12 +27,15 @@ function loadGoogleScript() {
 /**
  * "Continue with Google". Google draws the real button; when the user finishes, Google gives
  * us an ID token (a "credential") which we pass to onCredential. The backend then verifies it.
- * Without VITE_GOOGLE_CLIENT_ID in .env the button is shown disabled.
+ * While Google's script loads (or without VITE_GOOGLE_CLIENT_ID in .env) a disabled placeholder
+ * button holds the space, so the page does not jump when the real button appears.
  */
 export default function GoogleButton({ onCredential, onError, text = 'continue_with' }) {
+  const wrapperRef = useRef(null)
   const containerRef = useRef(null)
   const callbackRef = useRef(onCredential)
   callbackRef.current = onCredential
+  const [status, setStatus] = useState(CLIENT_ID ? 'loading' : 'missing')
 
   useEffect(() => {
     if (!CLIENT_ID) return
@@ -49,25 +52,32 @@ export default function GoogleButton({ onCredential, onError, text = 'continue_w
           size: 'large',
           shape: 'rectangular',
           text,
-          width: Math.min(400, containerRef.current.offsetWidth),
+          width: Math.min(400, wrapperRef.current.offsetWidth),
         })
+        setStatus('ready')
       })
-      .catch((error) => onError?.(error.message))
+      .catch((error) => {
+        if (cancelled) return
+        setStatus('failed')
+        onError?.(error.message)
+      })
     return () => {
       cancelled = true
     }
   }, [text, onError])
 
-  if (!CLIENT_ID) {
-    return (
-      <div className="flex flex-col gap-1">
-        <Button variant="secondary" disabled className="w-full">
-          Continue with Google
-        </Button>
-        <p className="text-center text-xs text-ink-soft">Google sign-in is not set up yet.</p>
-      </div>
-    )
-  }
-
-  return <div ref={containerRef} className="flex min-h-10 w-full justify-center" />
+  return (
+    <div ref={wrapperRef} className="flex w-full flex-col gap-1">
+      {status !== 'ready' && (
+        <>
+          <Button variant="secondary" disabled className={`w-full ${status === 'loading' ? 'animate-pulse' : ''}`}>
+            Continue with Google
+          </Button>
+          {status === 'missing' && <p className="text-center text-xs text-ink-soft">Google sign-in is not set up yet.</p>}
+          {status === 'failed' && <p className="text-center text-xs text-ink-soft">Google sign-in is unavailable right now.</p>}
+        </>
+      )}
+      <div ref={containerRef} className={status === 'ready' ? 'flex min-h-10 w-full justify-center' : 'hidden'} />
+    </div>
+  )
 }

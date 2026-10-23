@@ -1,65 +1,77 @@
-# Campus Lost and Found - Frontend
+# Campus Lost and Found: Frontend
 
-React + Vite single-page app for the Spring Boot backend in `../backend`.
-Stack: React, React Router DOM, Axios, Tailwind CSS v4, Lucide icons, Inter font (self-hosted with `@fontsource-variable/inter`).
+React single-page app (Vite, Tailwind CSS) for the Spring Boot backend in [`../backend`](../backend/README.md).
 
-## Requirements
-Node.js 20.19+ or 22.12+ (Vite 8). Check with `node -v`.
+## Prerequisites
 
-## Run
+- Node.js 20.19+ or 22.12+ (`node -v`)
+- The backend running on http://localhost:8080
+
+## Setup
+
+**1. Create `.env`** from the template (it is git-ignored):
+
 ```bash
-cd frontend
-cp .env.example .env     # check VITE_API_BASE_URL (default http://localhost:8080)
-npm install
-npm run dev              # http://localhost:5173
+cp .env.example .env
 ```
-Start the backend first. Use port 5173: the backend only allows that origin through CORS.
-Build for production with `npm run build`.
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `VITE_API_BASE_URL` | yes | Backend address, default `http://localhost:8080` |
+| `VITE_GOOGLE_CLIENT_ID` | no | Enables Google sign-in; must equal `GOOGLE_CLIENT_ID` in `backend/.env`. Empty = button disabled |
+
+**2. Install and run:**
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # production build in dist/
+```
+
+Keep port 5173: the backend's CORS allows only that origin (`CORS_ALLOWED_ORIGINS`).
 
 ## Pages
+
 | URL | Who | What |
 |---|---|---|
-| `/` | everyone | hero, how it works (guests), live search with Lost/Found switch and filters, item grid with photos |
-| `/items/:id` | everyone | details; students can claim found items; owners and admins manage the report |
-| `/login`, `/register` | guests | email/password forms and "Continue with Google" |
-| `/report`, `/items/:id/edit` | students | create and edit reports (type cards, category list, photo upload) |
-| `/my-items`, `/my-claims` | students | my reports (edit, close, delete) and my claims |
-| `/admin` | admins | attention panel, clickable counts, items-by-status bar, waiting claims, latest reports |
-| `/admin/claims` | admins | pending claims with age, approve or reject (tab shows the waiting count) |
-| `/admin/items` | admins | table of all items, status tabs with counts, filters kept in the URL, close or mark returned |
+| `/` | everyone | Search, Lost/Found switch, filters, item cards |
+| `/items/:id` | everyone | Details; students claim found items; owners and admins manage the report |
+| `/login`, `/register` | guests | Email and password, or Google |
+| `/report`, `/items/:id/edit` | students | Create or edit a report, with photo upload |
+| `/my-items`, `/my-claims` | students | Own reports and claims |
+| `/profile` | any user | Account details and recent activity |
+| `/admin` | admins | Counts, items by status, waiting claims, latest reports |
+| `/admin/claims` | admins | Approve or reject pending claims |
+| `/admin/items` | admins | All items with status tabs; close or mark returned |
+| `/admin/users` | admins | All users |
 
-Admins cannot report or claim items (the backend does not allow it), so those pages and buttons are student-only.
+Admins cannot report or claim items (the backend forbids it). Admin pages are linked from the navbar.
 
-## Photos
-`ImageUpload` sends the chosen picture to `POST /api/uploads` (see the backend README) and keeps the returned path in the form. Pictures are shown with `utils/image.js`, which turns a stored path into a full URL. Older reports that stored a web link still display.
+## Project layout
 
-## Structure
 ```
 src/
-  main.jsx, App.jsx        entry point and providers
-  styles/global.css        Tailwind import + design tokens (@theme) + a few base rules
-  contexts/                AuthContext (user, login, logout), NotificationContext (toasts)
-  hooks/                   useAuth, useNotification, useFetch (load data), useDebounced, usePageTitle
-  services/                api.js (one Axios client) + auth/item/claim/admin services
-  components/              Button, Input, Select, StatusBadge, ItemCard, ItemFilters, ItemForm,
-                           ClaimCard, StatCard, ImageUpload, SegmentedControl, StatusSteps, Skeletons, ConfirmDialog, GoogleButton, States, ...
-  layouts/                 MainLayout (navbar, footer), AdminLayout (admin tabs)
-  routes/                  AppRoutes, ProtectedRoute (login and role guards)
-  pages/                   one file per page
-  utils/format.js          date and label formatting
+  main.jsx, App.jsx    entry point and providers
+  routes/              AppRoutes, ProtectedRoute (login and role guards)
+  layouts/             MainLayout (navbar), AdminLayout (loads dashboard numbers)
+  pages/               one file per route
+  components/          shared UI (Button, Panel, ItemCard, ItemForm, ClaimCard, ...)
+  contexts/            AuthContext, NotificationContext (toasts)
+  hooks/               useAuth, useFetch, useDebounced, useNotification, usePageTitle
+  services/            api.js (one Axios client) + auth, item, claim, admin, upload calls
+  utils/               constants, date and label formatting, image URLs
+  styles/global.css    Tailwind import and theme colours
 ```
 
-## Styling
-Tailwind classes in the components do the styling. `global.css` holds only what Tailwind cannot express as classes: the color tokens (`@theme`: cream surfaces, brick red `primary`, earthy status colors), heading sizes and the focus outline. Changing the theme means editing those tokens. The site is light-only.
+## How it works
+
+- **API client** (`services/api.js`): one Axios instance. It adds `Authorization: Bearer <token>` and turns every error into `error.apiError = { status, message, fieldErrors }`.
+- **Login:** the JWT is kept in `localStorage` (`lf_token`). On load `AuthContext` calls `/api/auth/me` to restore the user, and a 401 on a protected call logs the user out.
+- **Route guards:** `ProtectedRoute` redirects guests to `/login` and wrong roles to their home page. This only hides pages; the backend enforces real access.
+- **Forms:** backend `fieldErrors` appear under the matching field; other errors show in a box or a toast.
+- **Photos:** `ImageUpload` posts to `POST /api/uploads` and keeps the returned path in the form.
+- **Styling:** Tailwind classes in the components. Colours (cream surfaces, brick-red accent) are defined once in `styles/global.css`. The site is light mode only.
 
 ## Google sign-in (optional)
-1. Create a Web OAuth client in Google Cloud and add `http://localhost:5173` as an authorized JavaScript origin.
-2. Put the client ID in `frontend/.env` as `VITE_GOOGLE_CLIENT_ID` and in `backend/.env` as `GOOGLE_CLIENT_ID` (the same value).
-3. Restart both. Until then the button is shown disabled.
 
-## How it works (viva notes)
-- **One Axios client** (`services/api.js`): base URL from `VITE_API_BASE_URL`, adds `Authorization: Bearer <token>`, and turns every error into `error.apiError = { status, message, fieldErrors }` (the backend's error JSON).
-- **Auth:** the JWT is kept in `localStorage`. On page load `AuthContext` calls `/api/auth/me` to restore the user. A 401 on a protected call logs the user out.
-- **Route guards:** `ProtectedRoute` sends guests to `/login` (and back afterwards) and wrong roles to their home page. This only hides pages; the backend enforces real access.
-- **Forms:** backend `fieldErrors` are shown under the matching field; other errors appear in a red box or a toast.
-- **Contexts only for shared state:** auth and notifications. Each page keeps its own data.
+Create a Web OAuth client in Google Cloud, add `http://localhost:5173` as an authorized JavaScript origin, and put the same client ID in both `.env` files.

@@ -12,7 +12,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.campus</groupId>
+    <groupId>com.lostfound</groupId>
     <artifactId>lostandfound</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>campus-lost-found-backend</name>
@@ -35,7 +35,7 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- Login, password hashing, role-based access (configured in Stage 4) -->
+        <!-- Login, password hashing, role-based access -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -67,7 +67,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Helpers for testing secured endpoints (used from Stage 4) -->
+        <!-- Helpers for testing secured endpoints -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>

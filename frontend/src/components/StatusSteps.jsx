@@ -12,13 +12,13 @@ export default function StatusSteps({ status }) {
   const current = CURRENT[status] ?? 0
 
   return (
-    <ol className="flex items-center" aria-label="Progress">
+    <ol className="grid grid-cols-3 gap-2 sm:flex sm:items-center" aria-label="Progress">
       {STEPS.map((label, index) => {
         const done = index < current || status === 'RETURNED'
         const active = index === current
         return (
-          <li key={label} className="flex flex-1 items-center last:flex-none">
-            <span className="flex items-center gap-2">
+          <li key={label} className="flex flex-col items-center sm:flex-1 sm:flex-row sm:last:flex-none">
+            <span className="flex flex-col items-center gap-1 text-center sm:flex-row sm:gap-2 sm:text-left">
               <span
                 className={`inline-flex size-6 items-center justify-center rounded-full text-xs font-semibold ${
                   done
@@ -33,7 +33,7 @@ export default function StatusSteps({ status }) {
               </span>
               <span className={`text-sm ${active || done ? 'font-medium text-ink' : 'text-ink-soft'}`}>{label}</span>
             </span>
-            {index < STEPS.length - 1 && <span className={`mx-3 h-px flex-1 ${done ? 'bg-primary' : 'bg-line'}`} />}
+            {index < STEPS.length - 1 && <span className={`mx-3 hidden h-px flex-1 sm:block ${done ? 'bg-primary' : 'bg-line'}`} />}
           </li>
         )
       })}

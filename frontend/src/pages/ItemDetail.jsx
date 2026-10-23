@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Calendar, ChevronRight, MapPin, Tag, User } from 'lucide-react'
+import { Calendar, ChevronRight, CircleCheck, MapPin, PackageCheck, Pencil, Tag, Trash2, User } from 'lucide-react'
 
 import Button from '../components/Button.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import Input from '../components/Input.jsx'
+import Panel from '../components/Panel.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
 import StatusSteps from '../components/StatusSteps.jsx'
 import { ErrorMessage, LoadingState } from '../components/States.jsx'
@@ -134,13 +135,13 @@ export default function ItemDetail() {
       </nav>
 
       <div className="grid items-start gap-4 lg:grid-cols-[1fr_340px]">
-        <article className="flex flex-col overflow-hidden rounded-card bg-card shadow-card">
+        <article className="flex flex-col overflow-hidden rounded-md border border-line bg-card">
           <ItemImage imagePath={item.imagePath} alt={item.itemName} className="h-48 w-full bg-sand object-cover sm:h-64" />
 
           <div className="flex flex-col gap-3 p-5">
             <div className="flex gap-2">
               <StatusBadge value={item.type} />
-              <StatusBadge value={item.status} />
+              {item.status !== 'OPEN' && <StatusBadge value={item.status} />}
             </div>
             <h1>{item.itemName}</h1>
 
@@ -168,11 +169,13 @@ export default function ItemDetail() {
         <aside className="flex flex-col gap-3">
           {/* Claim area */}
           {item.type === 'FOUND' && (
-            <section id="claim" className="flex flex-col gap-3 rounded-card bg-card shadow-card p-4">
-              <h2 className="text-lg">Is this yours?</h2>
-              <p className="text-sm text-ink-soft">
-                Send a claim describing something only the owner would know. An admin reviews it, then you collect the item.
-              </p>
+            <Panel title="Is this yours?" className="scroll-mt-20">
+              <div id="claim" className="flex flex-col gap-3 p-4">
+              {!isAdmin && !(isStudent && isOwner) && (
+                <p className="text-sm text-ink-soft">
+                  Send a claim describing something only the owner would know. An admin reviews it, then you collect the item from the admin office.
+                </p>
+              )}
 
               {!isAuthenticated && (
                 <>
@@ -196,7 +199,7 @@ export default function ItemDetail() {
                   </p>
                   <p className="text-ink-soft">
                     {latestClaim.status === 'APPROVED'
-                      ? 'Your claim was approved. Contact the person who found it to collect your item.'
+                      ? 'Your claim was approved. Collect your item from the admin office.'
                       : 'An admin will review your claim soon.'}
                   </p>
                 </div>
@@ -228,12 +231,13 @@ export default function ItemDetail() {
                   </Button>
                 </form>
               )}
-            </section>
+              </div>
+            </Panel>
           )}
 
           {item.type === 'LOST' && (
-            <section className="flex flex-col gap-2 rounded-card bg-card shadow-card p-4">
-              <h2 className="text-lg">Seen this item?</h2>
+            <Panel title="Seen this item?">
+              <div className="flex flex-col gap-3 p-4">
               <p className="text-sm text-ink-soft">
                 Lost reports cannot be claimed. If you found it, report it as a found item and say where you left it.
                 The owner can then claim it.
@@ -248,37 +252,43 @@ export default function ItemDetail() {
                   Report a found item
                 </Button>
               )}
-            </section>
+              </div>
+            </Panel>
           )}
 
           {/* Manage area: owner and admin */}
           {canManage && (
-            <section className="flex flex-col gap-3 rounded-card bg-card shadow-card p-4">
-              <h2 className="text-lg">Manage report</h2>
-              {item.status === 'CLAIM_PENDING' && (
-                <p className="text-sm text-ink-soft">
-                  After an admin approves a claim and the item is handed over, mark it as returned.
-                </p>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {isOwner && active && (
-                  <Button to={`/items/${item.id}/edit`} variant="secondary">
-                    Edit
-                  </Button>
+            <Panel title="Manage report">
+              <div className="flex flex-col gap-3 p-4">
+                {item.status === 'CLAIM_PENDING' && (
+                  <p className="text-sm text-ink-soft">
+                    Once an admin approves a claim and the item has been collected, mark it as returned.
+                  </p>
                 )}
-                {canMarkReturned && <Button onClick={() => setConfirming('returned')}>Mark returned</Button>}
-                {active && (
-                  <Button variant="secondary" onClick={() => setConfirming('close')}>
-                    Close report
-                  </Button>
-                )}
-                {isOwner && (
-                  <Button variant="danger" onClick={() => setConfirming('delete')}>
-                    Delete
-                  </Button>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {isOwner && active && (
+                    <Button to={`/items/${item.id}/edit`} variant="soft" size="sm">
+                      <Pencil size={14} aria-hidden="true" /> Edit
+                    </Button>
+                  )}
+                  {canMarkReturned && (
+                    <Button size="sm" onClick={() => setConfirming('returned')}>
+                      <PackageCheck size={14} aria-hidden="true" /> Mark returned
+                    </Button>
+                  )}
+                  {active && (
+                    <Button variant="secondary" size="sm" title="Close this report" onClick={() => setConfirming('close')}>
+                      <CircleCheck size={14} aria-hidden="true" /> Close
+                    </Button>
+                  )}
+                  {isOwner && (
+                    <Button variant="dangerSoft" size="sm" className="ml-auto" onClick={() => setConfirming('delete')}>
+                      <Trash2 size={14} aria-hidden="true" /> Delete
+                    </Button>
+                  )}
+                </div>
               </div>
-            </section>
+            </Panel>
           )}
         </aside>
       </div>

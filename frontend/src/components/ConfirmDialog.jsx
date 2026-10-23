@@ -29,7 +29,7 @@ export default function ConfirmDialog({
       ref={dialogRef}
       onCancel={onCancel}
       aria-labelledby="confirm-title"
-      className="m-auto w-[min(420px,calc(100vw-32px))] rounded-card bg-card shadow-card p-5 text-ink shadow-xl backdrop:bg-ink/45"
+      className="m-auto w-[min(420px,calc(100vw-32px))] rounded-md border border-line bg-card p-5 text-ink shadow-xl backdrop:bg-ink/45"
     >
       <h2 id="confirm-title" className="mb-2 text-lg">
         {title}

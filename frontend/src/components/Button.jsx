@@ -8,6 +8,8 @@ const VARIANTS = {
   primary: 'border-transparent bg-primary text-on-primary not-disabled:hover:bg-primary-hover',
   secondary: 'border-line bg-card text-ink not-disabled:hover:bg-sand',
   danger: 'border-transparent bg-danger text-on-primary not-disabled:hover:bg-danger-hover',
+  soft: 'border-primary/25 bg-primary-soft/50 text-primary not-disabled:hover:bg-primary-soft',
+  dangerSoft: 'border-danger/25 bg-transparent text-danger not-disabled:hover:bg-error-bg',
   ghost: 'border-transparent bg-transparent text-ink-soft not-disabled:hover:bg-sand not-disabled:hover:text-ink',
 }
 
@@ -17,7 +19,7 @@ const SIZES = {
 }
 
 /**
- * variant: primary | secondary | danger | ghost     size: md | sm
+ * variant: primary | secondary | soft | danger | dangerSoft | ghost     size: md | sm
  * loading: shows a spinner and blocks clicks.   to: renders a router Link instead of a <button>.
  */
 export default function Button({

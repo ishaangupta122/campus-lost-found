@@ -1,19 +1,19 @@
 # Campus Lost and Found
 
-Students report lost and found items, claim found items, and admins approve each claim before an item is handed back.
+Students report lost and found items and claim found ones. An admin approves each claim, and the handover is confirmed.
 
-| Folder | What is in it |
+| Folder | Contents |
 |---|---|
-| `backend/` | Spring Boot REST API (Java 21, PostgreSQL, JWT). See `backend/README.md` |
-| `frontend/` | React + Vite + Tailwind app. See `frontend/README.md` |
-| `docs/` | `API.md` (endpoints), `OOP-GUIDE.md`, `VIVA-NOTES.md` |
+| [`backend/`](backend/README.md) | Spring Boot 3.5, Java 21, PostgreSQL, JWT |
+| [`frontend/`](frontend/README.md) | React 19, Vite, Tailwind CSS |
+| [`docs/`](docs/) | Workflow, architecture, backend guide |
 
 ## Quick start
 
 1. Create the database: `psql -U postgres -f backend/database/create-database.sql`
-2. Copy `backend/.env.example` to `backend/.env` and fill it in.
-3. Backend: `cd backend && mvn spring-boot:run` (port 8080). Tests: `mvn clean test`.
-4. Copy `frontend/.env.example` to `frontend/.env`.
-5. Frontend: `cd frontend && npm install && npm run dev` (http://localhost:5173).
+2. Backend: copy `backend/.env.example` to `backend/.env` and edit it, then `cd backend && mvn spring-boot:run` (http://localhost:8080).
+3. Frontend: copy `frontend/.env.example` to `frontend/.env`, then `cd frontend && npm install && npm run dev` (http://localhost:5173).
 
-Never commit `.env` files.
+Tests: `cd backend && mvn clean test` (PostgreSQL must be running). Never commit `.env` files.
+
+Start with [docs/WORKFLOW.md](docs/WORKFLOW.md) to see how the app works, then [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the folders and files.

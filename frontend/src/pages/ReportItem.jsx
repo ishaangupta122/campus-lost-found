@@ -18,7 +18,7 @@ export default function ReportItem() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
+    <div>
       <PageHeader title="Report an item" subtitle="Tell the campus what you lost or found." />
       <ItemForm submitLabel="Submit report" onSubmit={handleCreate} onCancel={() => navigate(-1)} />
     </div>

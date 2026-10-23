@@ -1,4 +1,8 @@
--- Run once as a PostgreSQL superuser:
+-- Creates the (empty) database used by the backend.
+-- Run once as a PostgreSQL superuser, from the backend/ folder:
 --   psql -U postgres -f database/create-database.sql
--- Tables (users, items, claims) are created by JPA from Stage 2 onwards.
+--
+-- The tables (users, items, claims) are NOT created here: the backend creates
+-- them automatically on first start (spring.jpa.hibernate.ddl-auto=update).
+
 CREATE DATABASE campus_lost_found;

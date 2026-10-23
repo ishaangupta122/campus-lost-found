@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 
 import PageHeader from '../components/PageHeader.jsx'
+import Panel from '../components/Panel.jsx'
 import SegmentedControl from '../components/SegmentedControl.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
 import { EmptyState, ErrorMessage, LoadingState } from '../components/States.jsx'
@@ -46,7 +47,7 @@ export default function AdminUsers() {
       />
 
       <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3 rounded-card bg-card p-3 shadow-card" role="search">
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-line bg-card p-3" role="search">
           <div className="relative min-w-56 flex-1">
             <Search
               size={18}
@@ -62,7 +63,7 @@ export default function AdminUsers() {
                 setSearch(event.target.value)
                 setVisible(PAGE_SIZE)
               }}
-              className="w-full rounded-control border border-line bg-card py-2 pr-3 pl-10 text-base placeholder:text-ink-soft/70 hover:border-ink-soft focus:border-primary focus-visible:outline-offset-0"
+              className="w-full rounded-control border border-line bg-canvas py-2 pr-3 pl-10 text-base placeholder:text-ink-soft/70 hover:border-ink-soft focus:border-primary focus-visible:outline-offset-0"
             />
           </div>
           <SegmentedControl
@@ -82,42 +83,51 @@ export default function AdminUsers() {
 
         {users && filtered.length > 0 && (
           <>
-            <p className="text-sm text-ink-soft" aria-live="polite">
-              Showing {Math.min(visible, filtered.length)} of {filtered.length} {filtered.length === 1 ? 'user' : 'users'}
-            </p>
-            <div className="overflow-x-auto rounded-card bg-card shadow-card">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-line bg-sand text-xs tracking-wide text-ink-soft uppercase">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">Name</th>
-                    <th className="px-3 py-2 font-medium">Email</th>
-                    <th className="px-3 py-2 font-medium">Role</th>
-                    <th className="hidden px-3 py-2 font-medium sm:table-cell">Sign-in</th>
-                    <th className="hidden px-3 py-2 font-medium md:table-cell">Joined</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {filtered.slice(0, visible).map((user) => (
-                    <tr key={user.id} className="hover:bg-sand/50">
-                      <td className="px-3 py-2 font-medium">{user.name}</td>
-                      <td className="px-3 py-2 break-all text-ink-soft">{user.email}</td>
-                      <td className="px-3 py-2">
-                        <StatusBadge value={user.role === 'ADMIN' ? 'REJECTED' : 'FOUND'} label={formatLabel(user.role)} />
-                      </td>
-                      <td className="hidden px-3 py-2 text-ink-soft sm:table-cell">
-                        {user.googleAccount ? 'Google' : 'Password'}
-                      </td>
-                      <td className="hidden px-3 py-2 whitespace-nowrap text-ink-soft md:table-cell">
-                        {formatDate(user.createdAt)}
-                      </td>
+            <Panel title={`Showing ${Math.min(visible, filtered.length)} of ${filtered.length} ${filtered.length === 1 ? 'user' : 'users'}`}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-line text-sm whitespace-nowrap text-ink-soft">
+                    <tr>
+                      <th className="px-4 py-2.5 font-medium">Name</th>
+                      <th className="hidden px-3 py-2.5 font-medium sm:table-cell">Email</th>
+                      <th className="hidden px-3 py-2.5 font-medium sm:table-cell">Role</th>
+                      <th className="hidden px-3 py-2.5 font-medium md:table-cell">Sign-in</th>
+                      <th className="hidden px-4 py-2.5 font-medium md:table-cell">Joined</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {filtered.slice(0, visible).map((user) => (
+                      <tr key={user.id} className="hover:bg-sand/50">
+                        <td className="max-w-48 px-4 py-3 whitespace-nowrap">
+                          <p className="truncate font-medium text-ink" title={user.name}>
+                            {user.name}
+                          </p>
+                          <p className="truncate text-sm text-ink-soft sm:hidden">{user.email}</p>
+                          <div className="mt-1 sm:hidden">
+                            <StatusBadge value={user.role === 'ADMIN' ? 'REJECTED' : 'FOUND'} label={formatLabel(user.role)} />
+                          </div>
+                        </td>
+                        <td className="hidden max-w-72 truncate px-3 py-3 whitespace-nowrap text-ink-soft sm:table-cell" title={user.email}>
+                          {user.email}
+                        </td>
+                        <td className="hidden px-3 py-3 whitespace-nowrap sm:table-cell">
+                          <StatusBadge value={user.role === 'ADMIN' ? 'REJECTED' : 'FOUND'} label={formatLabel(user.role)} />
+                        </td>
+                        <td className="hidden px-3 py-3 whitespace-nowrap text-ink-soft md:table-cell">
+                          {user.googleAccount ? 'Google' : 'Password'}
+                        </td>
+                        <td className="hidden px-4 py-3 whitespace-nowrap text-ink-soft md:table-cell">
+                          {formatDate(user.createdAt)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
             {filtered.length > visible && (
-              <div className="flex justify-center">
-                <Button variant="secondary" onClick={() => setVisible(visible + PAGE_SIZE)}>
+              <div className="flex justify-center pt-2 pb-4">
+                <Button variant="secondary" className="px-8" onClick={() => setVisible(visible + PAGE_SIZE)}>
                   Load more
                 </Button>
               </div>

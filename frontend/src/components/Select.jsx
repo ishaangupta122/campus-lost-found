@@ -11,11 +11,17 @@ export default function Select({ label, error, className = '', children, ...rest
       {label && (
         <label htmlFor={id} className="text-sm font-medium">
           {label}
+          {rest.required && (
+            <span className="text-danger" aria-hidden="true">
+              {' '}
+              *
+            </span>
+          )}
         </label>
       )}
       <select
         id={id}
-        className={CONTROL_CLASSES}
+        className={`${CONTROL_CLASSES} h-10`}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
         {...rest}
@@ -23,7 +29,7 @@ export default function Select({ label, error, className = '', children, ...rest
         {children}
       </select>
       {error && (
-        <p id={`${id}-error`} className="text-xs text-error-fg">
+        <p id={`${id}-error`} className="text-sm text-error-fg">
           {error}
         </p>
       )}

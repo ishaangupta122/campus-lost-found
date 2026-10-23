@@ -4,20 +4,29 @@ import { Calendar, MapPin } from 'lucide-react'
 import Button from './Button.jsx'
 import ItemImage from './ItemImage.jsx'
 import StatusBadge from './StatusBadge.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import { formatDate } from '../utils/format.js'
 
 /**
  * Shows one ItemResponse from the backend. The title link stretches over the whole card
  * (after:absolute), so the card is one big click target. The button at the bottom sits
- * above that link: "Claim this item" for a found item that is still waiting for its
- * owner, "View details" for everything else.
- * children: optional action buttons that replace the default button (used on "My items").
+ * above that link: "Claim this item" ("Log in to claim" for guests) for a found item that is still
+ * waiting for its owner, "View details" for everything else. The status badge is hidden for open
+ * items, since that is the normal case.
+ * children: optional action buttons that replace the default button (used on "My items", where the
+ * status is always shown).
  */
 export default function ItemCard({ item, children }) {
-  const claimable = item.type === 'FOUND' && (item.status === 'OPEN' || item.status === 'CLAIM_PENDING')
+  const { user, isAuthenticated, isAdmin } = useAuth()
+  // Admins and the person who reported the item cannot claim it.
+  const claimable =
+    item.type === 'FOUND' &&
+    (item.status === 'OPEN' || item.status === 'CLAIM_PENDING') &&
+    !isAdmin &&
+    item.reporterId !== user?.id
 
   return (
-    <article className="relative flex flex-col overflow-hidden rounded-card bg-card shadow-card transition-colors hover:shadow-md has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-primary">
+    <article className="relative flex flex-col overflow-hidden rounded-md border border-line bg-card transition-colors hover:border-primary/50 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-primary">
       <div className="h-32 bg-sand">
         <ItemImage imagePath={item.imagePath} className="size-full object-cover" />
       </div>
@@ -32,7 +41,7 @@ export default function ItemCard({ item, children }) {
               {item.itemName}
             </Link>
           </h3>
-          <StatusBadge value={item.status} />
+          {(item.status !== 'OPEN' || children) && <StatusBadge value={item.status} />}
         </div>
 
         <div className="flex flex-wrap gap-1.5">
@@ -60,7 +69,7 @@ export default function ItemCard({ item, children }) {
               variant={claimable ? 'primary' : 'secondary'}
               className="w-full"
             >
-              {claimable ? 'Claim this item' : 'View details'}
+              {claimable ? (isAuthenticated ? 'Claim this item' : 'Log in to claim') : 'View details'}
             </Button>
           )}
         </div>

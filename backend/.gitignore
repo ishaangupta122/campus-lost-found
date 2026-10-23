@@ -5,3 +5,7 @@ target/
 .vscode/
 *.iml
 .DS_Store
+
+# Uploaded pictures stay local; keep the empty folder
+uploads/*
+!uploads/.gitkeep

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
+import { PackageCheck, X } from 'lucide-react'
 
 import Button from '../components/Button.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import ItemFilters, { EMPTY_FILTERS } from '../components/ItemFilters.jsx'
 import PageHeader from '../components/PageHeader.jsx'
+import Panel from '../components/Panel.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
 import { EmptyState, ErrorMessage, LoadingState } from '../components/States.jsx'
 import { useDebounced } from '../hooks/useDebounced.js'
@@ -94,19 +96,21 @@ export default function AdminItems() {
               type="button"
               aria-pressed={draft.status === value}
               onClick={() => changeFilters({ ...draft, status: value })}
-              className={`inline-flex cursor-pointer items-center gap-2 rounded-control border px-3 py-1 text-sm font-medium transition-colors ${
+              className={`inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
                 draft.status === value
                   ? 'border-primary bg-primary-soft text-primary'
                   : 'border-line bg-card text-ink-soft hover:text-ink'
               }`}
             >
               {label}
-              {count != null && <span className="text-xs opacity-80">{count}</span>}
+              {count != null && (
+                <span className="rounded-full bg-sand px-1.5 text-xs font-semibold text-ink-soft">{count}</span>
+              )}
             </button>
           ))}
         </div>
 
-        <ItemFilters value={draft} onChange={changeFilters} allStatusesLabel="Any status" />
+        <ItemFilters value={draft} onChange={changeFilters} allStatusesLabel="Any status" hideStatus defaultOpen={false} />
 
         {loading && !items && <LoadingState message="Loading items..." />}
         {error && <ErrorMessage message={error} onRetry={reload} />}
@@ -114,74 +118,89 @@ export default function AdminItems() {
 
         {items && items.length > 0 && (
           <>
-            <p className="text-sm text-ink-soft">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
-            </p>
-            <div className={`overflow-x-auto rounded-card bg-card shadow-card ${loading ? 'opacity-60' : ''}`}>
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-line bg-sand text-xs tracking-wide text-ink-soft uppercase">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">Item</th>
-                    <th className="hidden px-3 py-2 font-medium sm:table-cell">Status</th>
-                    <th className="hidden px-3 py-2 font-medium md:table-cell">Reported by</th>
-                    <th className="hidden px-3 py-2 font-medium lg:table-cell">Location</th>
-                    <th className="hidden px-3 py-2 font-medium md:table-cell">Date</th>
-                    <th className="px-3 py-2 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {items.slice(0, visible).map((item) => {
-                    const active = item.status === 'OPEN' || item.status === 'CLAIM_PENDING'
-                    return (
-                      <tr key={item.id} className="align-middle hover:bg-sand/50">
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-3">
-                            <ItemImage imagePath={item.imagePath} className="size-10 shrink-0 rounded-md bg-sand object-cover" />
-                            <div className="min-w-0">
-                              <Link to={`/items/${item.id}`} className="block truncate font-medium text-ink">
-                                {item.itemName}
-                              </Link>
-                              <p className="mt-0.5 flex items-center gap-2 text-xs text-ink-soft">
-                                <StatusBadge value={item.type} /> {item.category}
-                              </p>
-                              <div className="mt-1 sm:hidden">
-                                <StatusBadge value={item.status} />
+            <Panel title={`${items.length} ${items.length === 1 ? 'item' : 'items'}`}>
+              <div className={`overflow-x-auto ${loading ? 'opacity-60' : ''}`}>
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-line text-sm whitespace-nowrap text-ink-soft">
+                    <tr>
+                      <th className="px-4 py-2.5 font-medium">Item</th>
+                      <th className="hidden px-3 py-2.5 font-medium sm:table-cell">Status</th>
+                      <th className="hidden px-3 py-2.5 font-medium md:table-cell">Reported by</th>
+                      <th className="hidden px-3 py-2.5 font-medium lg:table-cell">Location</th>
+                      <th className="hidden px-4 py-2.5 text-right font-medium sm:table-cell">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {items.slice(0, visible).map((item) => {
+                      const active = item.status === 'OPEN' || item.status === 'CLAIM_PENDING'
+                      return (
+                        <tr key={item.id} className="align-middle hover:bg-sand/50">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <ItemImage imagePath={item.imagePath} className="size-10 shrink-0 rounded-md bg-sand object-cover" />
+                              <div className="max-w-64 min-w-0">
+                                <Link to={`/items/${item.id}`} className="block truncate font-medium text-ink">
+                                  {item.itemName}
+                                </Link>
+                                <p className="mt-0.5 flex items-center gap-2 text-sm text-ink-soft">
+                                  <StatusBadge value={item.type} /> {item.category}
+                                </p>
+                                <div className="mt-1 sm:hidden">
+                                  <StatusBadge value={item.status} />
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2 sm:hidden">
+                              {item.status === 'CLAIM_PENDING' && (
+                                <Button size="sm" onClick={() => setPending({ action: 'returned', item })}>
+                                  <PackageCheck size={14} aria-hidden="true" /> Mark returned
+                                </Button>
+                              )}
+                              {active && (
+                                <Button size="sm" variant="soft" onClick={() => setPending({ action: 'close', item })}>
+                                  <X size={14} aria-hidden="true" /> Close
+                                </Button>
+                              )}
+                              {!active && <span className="text-sm text-ink-soft">No actions</span>}
+                            </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="hidden px-3 py-2 sm:table-cell">
-                          <StatusBadge value={item.status} />
-                        </td>
-                        <td className="hidden px-3 py-2 text-ink-soft md:table-cell">{item.reporterName}</td>
-                        <td className="hidden px-3 py-2 text-ink-soft lg:table-cell">{item.location}</td>
-                        <td className="hidden px-3 py-2 whitespace-nowrap text-ink-soft md:table-cell">
-                          {formatDate(item.reportDate)}
-                        </td>
-                        <td className="px-3 py-2">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            {item.status === 'CLAIM_PENDING' && (
-                              <Button size="sm" onClick={() => setPending({ action: 'returned', item })}>
-                                Mark returned
-                              </Button>
-                            )}
-                            {active && (
-                              <Button size="sm" variant="secondary" onClick={() => setPending({ action: 'close', item })}>
-                                Close
-                              </Button>
-                            )}
-                            {!active && <span className="text-xs text-ink-soft">No actions</span>}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                          <td className="hidden px-3 py-3 sm:table-cell">
+                            <StatusBadge value={item.status} />
+                          </td>
+                          <td className="hidden px-3 py-3 whitespace-nowrap md:table-cell">
+                            <p className="max-w-36 truncate text-ink" title={item.reporterName}>
+                              {item.reporterName}
+                            </p>
+                            <p className="text-sm text-ink-soft">{formatDate(item.reportDate)}</p>
+                          </td>
+                          <td className="hidden max-w-52 truncate px-3 py-3 whitespace-nowrap text-ink-soft lg:table-cell" title={item.location}>
+                            {item.location}
+                          </td>
+                          <td className="hidden px-4 py-3 sm:table-cell">
+                            <div className="flex justify-end gap-2">
+                              {item.status === 'CLAIM_PENDING' && (
+                                <Button size="sm" onClick={() => setPending({ action: 'returned', item })}>
+                                  <PackageCheck size={14} aria-hidden="true" /> Mark returned
+                                </Button>
+                              )}
+                              {active && (
+                                <Button size="sm" variant="soft" onClick={() => setPending({ action: 'close', item })}>
+                                  <X size={14} aria-hidden="true" /> Close
+                                </Button>
+                              )}
+                              {!active && <span className="text-sm text-ink-soft">No actions</span>}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
             {items.length > visible && (
-              <div className="flex justify-center">
-                <Button variant="secondary" onClick={() => setVisible(visible + PAGE_SIZE)}>
+              <div className="flex justify-center pt-2 pb-4">
+                <Button variant="secondary" className="px-8" onClick={() => setVisible(visible + PAGE_SIZE)}>
                   Load more
                 </Button>
               </div>

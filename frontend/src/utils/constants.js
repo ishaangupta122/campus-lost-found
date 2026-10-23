@@ -12,3 +12,6 @@ export const PERIOD_OPTIONS = [
   { value: '30', label: 'Last 30 days' },
   { value: '90', label: 'Last 90 days' },
 ]
+
+// Fired on window after an admin approves, rejects or closes something, so the navbar count refreshes.
+export const ADMIN_CHANGED = 'admin-stats-changed'

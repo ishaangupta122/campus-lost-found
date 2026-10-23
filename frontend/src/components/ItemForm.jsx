@@ -65,12 +65,17 @@ export default function ItemForm({ item, submitLabel, onSubmit, onCancel }) {
   const categories = form.category && !CATEGORIES.includes(form.category) ? [form.category, ...CATEGORIES] : CATEGORIES
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-6 rounded-md border border-line bg-card p-5 sm:p-6"
+      noValidate
+    >
       {error.message && !hasFieldErrors && <ErrorMessage message={error.message} />}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-2" role="radiogroup" aria-label="Report type">
-          {TYPES.map(({ value, title, icon: Icon }) => {
+      <div className="flex flex-col gap-2">
+        <h2>{editing ? 'Report type' : 'What are you reporting?'}</h2>
+        <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Report type">
+          {TYPES.map(({ value, title, hint, icon: Icon }) => {
             const selected = form.type === value
             return (
               <button
@@ -80,75 +85,83 @@ export default function ItemForm({ item, submitLabel, onSubmit, onCancel }) {
                 aria-checked={selected}
                 disabled={editing && !selected}
                 onClick={() => !editing && setForm({ ...form, type: value })}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-control border px-4 py-2 text-sm font-medium transition-colors disabled:hidden ${
-                  selected
-                    ? 'border-primary bg-primary text-on-primary'
-                    : 'border-line bg-card text-ink hover:border-ink-soft'
-                } ${editing ? 'cursor-default' : ''}`}
+                className={`flex items-start gap-3 rounded-md border-2 p-3 text-left transition-colors disabled:hidden ${
+                  selected ? 'border-primary bg-primary-soft' : 'border-line bg-canvas hover:border-primary/50'
+                } ${editing ? 'cursor-default' : 'cursor-pointer'}`}
               >
-                <Icon size={16} aria-hidden="true" />
-                {title}
+                <span
+                  className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full ${
+                    selected ? 'bg-primary text-on-primary' : 'bg-primary-soft text-primary'
+                  }`}
+                >
+                  <Icon size={18} aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-ink">{title}</span>
+                  <span className="block text-sm text-ink-soft">{hint}</span>
+                </span>
               </button>
             )
           })}
         </div>
-        <p className="text-sm text-ink-soft">
-          {editing
-            ? 'The type cannot be changed after the report is created.'
-            : form.type === 'LOST'
-              ? 'Describe it so finders can recognise it.'
-              : 'Help the owner get it back.'}
-        </p>
+        {editing && <p className="text-sm text-ink-soft">The type cannot be changed after the report is created.</p>}
       </div>
 
-      <div className="grid gap-5 md:grid-cols-[1fr_260px]">
-        <div className="flex flex-col gap-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+        <div className="flex flex-col gap-6">
+          <section className="flex flex-col gap-3" aria-labelledby="details-heading">
+            <h2 id="details-heading">Item details</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                label="Item name"
+                placeholder="e.g. Black backpack"
+                value={form.itemName}
+                onChange={set('itemName')}
+                error={error.fieldErrors.itemName}
+                required
+              />
+              <Select label="Category" value={form.category} onChange={set('category')} error={error.fieldErrors.category} required>
+                <option value="">Choose a category</option>
+                {categories.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <Input
-              label="Item name"
-              placeholder="e.g. Black backpack"
-              value={form.itemName}
-              onChange={set('itemName')}
-              error={error.fieldErrors.itemName}
+              label="Description"
+              multiline
+              rows={3}
+              hint="Colour, brand, marks. Keep back one detail only the owner would know."
+              value={form.description}
+              onChange={set('description')}
+              error={error.fieldErrors.description}
               required
             />
-            <Select label="Category" value={form.category} onChange={set('category')} error={error.fieldErrors.category} required>
-              <option value="">Choose a category</option>
-              {categories.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <Input
-            label="Description"
-            multiline
-            rows={3}
-            hint="Colour, brand, marks. Keep back one detail only the owner would know."
-            value={form.description}
-            onChange={set('description')}
-            error={error.fieldErrors.description}
-            required
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input
-              label={form.type === 'LOST' ? 'Where did you lose it?' : 'Where did you find it?'}
-              placeholder="e.g. Central Library"
-              value={form.location}
-              onChange={set('location')}
-              error={error.fieldErrors.location}
-              required
-            />
-            <Input
-              label="Date"
-              type="date"
-              max={today()}
-              value={form.reportDate}
-              onChange={set('reportDate')}
-              error={error.fieldErrors.reportDate}
-            />
-          </div>
+          </section>
+
+          <section className="flex flex-col gap-3" aria-labelledby="where-heading">
+            <h2 id="where-heading">Where and when</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                label={form.type === 'LOST' ? 'Where did you lose it?' : 'Where did you find it?'}
+                placeholder="e.g. Central Library"
+                value={form.location}
+                onChange={set('location')}
+                error={error.fieldErrors.location}
+                required
+              />
+              <Input
+                label={form.type === 'LOST' ? 'Date lost' : 'Date found'}
+                type="date"
+                max={today()}
+                value={form.reportDate}
+                onChange={set('reportDate')}
+                error={error.fieldErrors.reportDate}
+              />
+            </div>
+          </section>
         </div>
 
         <ImageUpload
@@ -158,15 +171,23 @@ export default function ItemForm({ item, submitLabel, onSubmit, onCancel }) {
         />
       </div>
 
-      <div className="flex flex-wrap justify-end gap-2">
-        {onCancel && (
-          <Button variant="secondary" onClick={onCancel} disabled={submitting}>
-            Cancel
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <p className="text-sm text-ink-soft">
+          <span className="text-danger" aria-hidden="true">
+            *
+          </span>{' '}
+          Required
+        </p>
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button variant="secondary" onClick={onCancel} disabled={submitting}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" loading={submitting}>
+            {submitLabel}
           </Button>
-        )}
-        <Button type="submit" loading={submitting}>
-          {submitLabel}
-        </Button>
+        </div>
       </div>
     </form>
   )

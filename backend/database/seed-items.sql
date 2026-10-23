@@ -1,8 +1,16 @@
--- Sample data: 10 reports spread over the first 3 STUDENT accounts (the admin is excluded).
--- Run after the app has started once (tables must exist) and the 3 students have registered:
---   psql -U <your_db_user> -d campus_lost_found -f backend/database/seed-items.sql
--- Safe to re-run: it does nothing if the items table already has rows.
--- All reports start as OPEN with no photo; add photos by editing a report in the app.
+-- Sample data: 10 lost/found reports for demos.
+--
+-- Before running:
+--   1. start the backend once, so the tables exist;
+--   2. register at least 3 students (the admin account is not used).
+--
+-- Run from the project root:
+--   psql -U <db_user> -d campus_lost_found -f backend/database/seed-items.sql
+--
+-- Notes:
+--   - Reports are spread over the first 3 students (by id).
+--   - Every report starts OPEN and has no photo (add one by editing the report).
+--   - Safe to run again: nothing is inserted if the items table already has rows.
 
 WITH students AS (
     SELECT id, row_number() OVER (ORDER BY id) AS n

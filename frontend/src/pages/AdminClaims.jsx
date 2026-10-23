@@ -68,9 +68,11 @@ export default function AdminClaims() {
         open={pending !== null}
         title={approving ? 'Approve this claim?' : 'Reject this claim?'}
         message={
-          approving
-            ? `${pending?.claim.claimantName} will be able to collect "${pending?.claim.itemName}". Other waiting claims for it will be rejected.`
-            : `${pending?.claim.claimantName}'s claim for "${pending?.claim.itemName}" will be rejected.`
+          !pending
+            ? ''
+            : approving
+              ? `${pending.claim.claimantName} will be able to collect "${pending.claim.itemName}" from the admin office. Other waiting claims for it will be rejected.`
+              : `${pending.claim.claimantName}'s claim for "${pending.claim.itemName}" will be rejected.`
         }
         confirmLabel={approving ? 'Approve' : 'Reject'}
         danger={!approving}

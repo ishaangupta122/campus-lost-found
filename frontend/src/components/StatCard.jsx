@@ -4,12 +4,14 @@ import { Link } from 'react-router-dom'
 export default function StatCard({ label, value, icon: Icon, to }) {
   const content = (
     <>
-      {Icon && <Icon size={18} className="text-primary" aria-hidden="true" />}
+      <p className="flex items-center gap-2 text-sm text-ink-soft">
+        {Icon && <Icon size={16} className="text-primary" aria-hidden="true" />}
+        {label}
+      </p>
       <p className="text-2xl font-semibold text-ink">{value}</p>
-      <p className="text-sm text-ink-soft">{label}</p>
     </>
   )
-  const classes = 'flex flex-col gap-0.5 rounded-card bg-card shadow-card p-3'
+  const classes = 'flex flex-col gap-1 rounded-md border border-line bg-card px-4 py-3'
 
   if (!to) return <div className={classes}>{content}</div>
   return (

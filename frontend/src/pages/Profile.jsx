@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, LogOut, Mail, ShieldCheck } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 import Button from '../components/Button.jsx'
+import PageHeader from '../components/PageHeader.jsx'
+import Panel, { PanelLink } from '../components/Panel.jsx'
 import StatCard from '../components/StatCard.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
 import { ErrorMessage, LoadingState } from '../components/States.jsx'
@@ -14,15 +16,28 @@ import { formatDate } from '../utils/format.js'
 
 const RECENT = 4
 
-// A small heading with a "see all" link, used above each recent list.
-function ListHeader({ title, to }) {
+// A short list of the latest items or claims; rows are { id, to, name, date, status }.
+function RecentList({ title, seeAllTo, rows, empty }) {
   return (
-    <div className="flex items-center justify-between">
-      <h2>{title}</h2>
-      <Link to={to} className="inline-flex items-center gap-1 text-sm">
-        See all <ArrowRight size={14} aria-hidden="true" />
-      </Link>
-    </div>
+    <Panel title={title} action={<PanelLink to={seeAllTo}>See all</PanelLink>}>
+      {rows.length === 0 ? (
+        <p className="px-4 py-4 text-sm text-ink-soft">{empty}</p>
+      ) : (
+        <ul className="divide-y divide-line">
+          {rows.slice(0, RECENT).map((row) => (
+            <li key={row.id} className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="min-w-0">
+                <Link to={row.to} className="block truncate font-medium text-ink">
+                  {row.name}
+                </Link>
+                <p className="text-sm text-ink-soft">{formatDate(row.date)}</p>
+              </div>
+              <StatusBadge value={row.status} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   )
 }
 
@@ -50,51 +65,38 @@ function StudentActivity() {
       </section>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="flex flex-col gap-3">
-          <ListHeader title="Recent reports" to="/my-items" />
-          {reports.length === 0 ? (
-            <p className="rounded-card bg-card p-4 text-sm text-ink-soft shadow-card">
+        <RecentList
+          title="Recent reports"
+          seeAllTo="/my-items"
+          rows={reports.map((item) => ({
+            id: item.id,
+            to: `/items/${item.id}`,
+            name: item.itemName,
+            date: item.reportDate,
+            status: item.status,
+          }))}
+          empty={
+            <>
               No reports yet. <Link to="/report">Report an item</Link>
-            </p>
-          ) : (
-            <ul className="divide-y divide-line rounded-card bg-card shadow-card">
-              {reports.slice(0, RECENT).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <div className="min-w-0">
-                    <Link to={`/items/${item.id}`} className="block truncate font-medium text-ink">
-                      {item.itemName}
-                    </Link>
-                    <p className="text-xs text-ink-soft">{formatDate(item.reportDate)}</p>
-                  </div>
-                  <StatusBadge value={item.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <ListHeader title="Recent claims" to="/my-claims" />
-          {myClaims.length === 0 ? (
-            <p className="rounded-card bg-card p-4 text-sm text-ink-soft shadow-card">
+            </>
+          }
+        />
+        <RecentList
+          title="Recent claims"
+          seeAllTo="/my-claims"
+          rows={myClaims.map((claim) => ({
+            id: claim.id,
+            to: `/items/${claim.itemId}`,
+            name: claim.itemName,
+            date: claim.createdAt,
+            status: claim.status,
+          }))}
+          empty={
+            <>
               No claims yet. <Link to="/">Browse items</Link>
-            </p>
-          ) : (
-            <ul className="divide-y divide-line rounded-card bg-card shadow-card">
-              {myClaims.slice(0, RECENT).map((claim) => (
-                <li key={claim.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <div className="min-w-0">
-                    <Link to={`/items/${claim.itemId}`} className="block truncate font-medium text-ink">
-                      {claim.itemName}
-                    </Link>
-                    <p className="text-xs text-ink-soft">{formatDate(claim.createdAt)}</p>
-                  </div>
-                  <StatusBadge value={claim.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            </>
+          }
+        />
       </div>
     </>
   )
@@ -111,42 +113,39 @@ export default function Profile() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <section className="flex flex-wrap items-center gap-4 rounded-card bg-card p-5 shadow-card">
-        <span
-          aria-hidden="true"
-          className="inline-flex size-16 shrink-0 items-center justify-center rounded-full bg-primary font-display text-2xl font-semibold text-on-primary"
-        >
-          {user.name.trim().charAt(0).toUpperCase()}
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate">{user.name}</h1>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-soft">
-            <span className="inline-flex items-center gap-1.5">
-              <Mail size={14} aria-hidden="true" /> {user.email}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck size={14} aria-hidden="true" /> {isAdmin ? 'Administrator' : 'Student'}
-            </span>
-          </p>
-        </div>
-
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Profile" subtitle="Your account and recent activity.">
         <Button variant="secondary" onClick={handleLogout}>
           <LogOut size={16} aria-hidden="true" /> Log out
         </Button>
-      </section>
+      </PageHeader>
+
+      <Panel title="Account" action={<StatusBadge value={isAdmin ? 'REJECTED' : 'FOUND'} label={isAdmin ? 'Administrator' : 'Student'} />}>
+        <dl className="flex flex-col gap-3 px-4 py-4">
+          <div className="grid gap-1 sm:grid-cols-[9rem_1fr] sm:gap-4">
+            <dt className="text-sm text-ink-soft">Name</dt>
+            <dd className="text-sm text-ink">{user.name}</dd>
+          </div>
+          <div className="grid gap-1 sm:grid-cols-[9rem_1fr] sm:gap-4">
+            <dt className="text-sm text-ink-soft">Email</dt>
+            <dd className="text-sm text-ink break-all">{user.email}</dd>
+          </div>
+          <div className="grid gap-1 sm:grid-cols-[9rem_1fr] sm:gap-4">
+            <dt className="text-sm text-ink-soft">Role</dt>
+            <dd className="text-sm text-ink">{isAdmin ? 'Administrator: reviews claims and manages every report' : 'Student: reports items and claims found ones'}</dd>
+          </div>
+        </dl>
+      </Panel>
 
       {isStudent && <StudentActivity />}
 
       {isAdmin && (
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-card bg-card p-5 shadow-card">
-          <div>
-            <h2>Admin area</h2>
+        <Panel title="Admin area">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
             <p className="text-sm text-ink-soft">Review claims and manage every report on campus.</p>
+            <Button to="/admin">Open dashboard</Button>
           </div>
-          <Button to="/admin">Open dashboard</Button>
-        </section>
+        </Panel>
       )}
     </div>
   )

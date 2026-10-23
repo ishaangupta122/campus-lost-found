@@ -14,7 +14,7 @@ export function LoadingState({ message = 'Loading...' }) {
 // action: optional { label, to } rendered as a button
 export function EmptyState({ title, message, action }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-card bg-card shadow-card px-4 py-8 text-center text-ink-soft">
+    <div className="flex flex-col items-center gap-2 rounded-md border border-line bg-card px-4 py-8 text-center text-ink-soft">
       <Inbox size={28} aria-hidden="true" />
       <h3 className="text-ink">{title}</h3>
       {message && <p>{message}</p>}
