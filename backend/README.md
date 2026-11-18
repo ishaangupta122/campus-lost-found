@@ -46,7 +46,7 @@ curl http://localhost:8080/api/health
 # {"status":"UP","database":"UP"}
 ```
 
-Optional demo data: register 3 students, then `psql -U <db_user> -d campus_lost_found -f database/seed-items.sql`.
+Optional demo data: `psql -U <db_user> -d campus_lost_found -f database/seed-items.sql` loads 15 reports and hands them to the first 4 students (4, 4, 4, 3), including students who register later. `database/reset-data.sql` clears all reports and claims, keeps users, and reloads the seed.
 
 ## Tests
 
@@ -61,7 +61,7 @@ mvn clean test
 ```
 backend/
   pom.xml
-  database/              create-database.sql, seed-items.sql
+  database/              create-database.sql, seed-items.sql, reset-data.sql
   src/main/java/com/lostfound/
     Application.java     entry point
     controller/          REST endpoints (HTTP only)

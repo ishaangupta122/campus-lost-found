@@ -47,7 +47,7 @@ backend/
 | `pom.xml` | Lists the libraries (dependencies), the Java version and the build plugin. Maven reads it. |
 | `.env` | Your private settings (database login, secret, admin account). Never committed. |
 | `.env.example` | The same file with placeholders, used as a template. |
-| `database/` | `create-database.sql` creates the empty database. `seed-items.sql` adds 10 sample reports. |
+| `database/` | `create-database.sql` creates the empty database. `seed-items.sql` loads 15 sample reports and assigns them to the first 4 students, now or when they register (database trigger). `reset-data.sql` deletes all reports and claims (users are kept) and reloads the seed. |
 | `uploads/` | Where uploaded pictures are stored. Only an empty `.gitkeep` is tracked. |
 | `target/` | Created by Maven when it builds. Safe to delete. |
 
