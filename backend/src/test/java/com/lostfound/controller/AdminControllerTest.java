@@ -75,11 +75,11 @@ class AdminControllerTest {
     @Test
     void adminSeesUserList() throws Exception {
         when(adminService.listUsers()).thenReturn(List.of(
-                new UserResponse(2L, "Asha", "asha@campus.edu", Role.STUDENT, false, LocalDateTime.now())));
+                new UserResponse(2L, "Asha", "asha@thapar.edu", Role.STUDENT, false, LocalDateTime.now())));
 
         mockMvc.perform(get("/api/admin/users").with(user(1, "ADMIN")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].email").value("asha@campus.edu"))
+                .andExpect(jsonPath("$[0].email").value("asha@thapar.edu"))
                 .andExpect(jsonPath("$[0].passwordHash").doesNotExist());
     }
 

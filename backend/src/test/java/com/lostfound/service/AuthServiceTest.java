@@ -22,6 +22,7 @@ import com.lostfound.dto.AuthPayloads.AuthResponse;
 import com.lostfound.dto.AuthPayloads.GoogleLoginRequest;
 import com.lostfound.dto.AuthPayloads.LoginRequest;
 import com.lostfound.dto.AuthPayloads.RegisterRequest;
+import com.lostfound.exception.BadRequestException;
 import com.lostfound.exception.ConflictException;
 import com.lostfound.model.Role;
 import com.lostfound.model.User;
@@ -51,16 +52,16 @@ class AuthServiceTest {
 
     @Test
     void registerCreatesStudentWithHashedPasswordAndNormalizedEmail() {
-        when(userRepository.existsByEmail("asha@campus.edu")).thenReturn(false);
+        when(userRepository.existsByEmail("asha@thapar.edu")).thenReturn(false);
 
         AuthResponse response = authService.register(
-                new RegisterRequest(" Asha ", "  Asha@Campus.EDU ", "secret123"));
+                new RegisterRequest(" Asha ", "  Asha@Thapar.EDU ", "secret123"));
 
         ArgumentCaptor<User> saved = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(saved.capture());
         User user = saved.getValue();
         assertEquals(Role.STUDENT, user.getRole());
-        assertEquals("asha@campus.edu", user.getEmail());
+        assertEquals("asha@thapar.edu", user.getEmail());
         assertEquals("Asha", user.getName());
         assertNotEquals("secret123", user.getPasswordHash());
         assertEquals(true, passwordEncoder.matches("secret123", user.getPasswordHash()));
@@ -70,47 +71,47 @@ class AuthServiceTest {
 
     @Test
     void registerRejectsDuplicateEmail() {
-        when(userRepository.existsByEmail("asha@campus.edu")).thenReturn(true);
+        when(userRepository.existsByEmail("asha@thapar.edu")).thenReturn(true);
 
         assertThrows(ConflictException.class, () ->
-                authService.register(new RegisterRequest("Asha", "asha@campus.edu", "secret123")));
+                authService.register(new RegisterRequest("Asha", "asha@thapar.edu", "secret123")));
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void loginSucceedsWithCorrectPassword() {
-        User user = new User("Asha", "asha@campus.edu", passwordEncoder.encode("secret123"), Role.STUDENT);
-        when(userRepository.findByEmail("asha@campus.edu")).thenReturn(Optional.of(user));
+        User user = new User("Asha", "asha@thapar.edu", passwordEncoder.encode("secret123"), Role.STUDENT);
+        when(userRepository.findByEmail("asha@thapar.edu")).thenReturn(Optional.of(user));
 
-        AuthResponse response = authService.login(new LoginRequest("ASHA@campus.edu", "secret123"));
+        AuthResponse response = authService.login(new LoginRequest("ASHA@thapar.edu", "secret123"));
 
         assertEquals("fake.jwt.token", response.token());
-        assertEquals("asha@campus.edu", response.user().email());
+        assertEquals("asha@thapar.edu", response.user().email());
     }
 
     @Test
     void loginFailsWithWrongPassword() {
-        User user = new User("Asha", "asha@campus.edu", passwordEncoder.encode("secret123"), Role.STUDENT);
-        when(userRepository.findByEmail("asha@campus.edu")).thenReturn(Optional.of(user));
+        User user = new User("Asha", "asha@thapar.edu", passwordEncoder.encode("secret123"), Role.STUDENT);
+        when(userRepository.findByEmail("asha@thapar.edu")).thenReturn(Optional.of(user));
 
         assertThrows(BadCredentialsException.class, () ->
-                authService.login(new LoginRequest("asha@campus.edu", "wrong-password")));
+                authService.login(new LoginRequest("asha@thapar.edu", "wrong-password")));
     }
 
     @Test
     void loginFailsForUnknownEmail() {
-        when(userRepository.findByEmail("nobody@campus.edu")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("nobody@thapar.edu")).thenReturn(Optional.empty());
 
         assertThrows(BadCredentialsException.class, () ->
-                authService.login(new LoginRequest("nobody@campus.edu", "secret123")));
+                authService.login(new LoginRequest("nobody@thapar.edu", "secret123")));
     }
 
     @Test
     void firstGoogleSignInCreatesStudentWithUnusablePassword() {
         when(googleTokenVerifier.verify("id-token"))
-                .thenReturn(new GoogleProfile("sub-1", "Asha@Campus.edu", "Asha Rao"));
+                .thenReturn(new GoogleProfile("sub-1", "Asha@Thapar.edu", "Asha Rao"));
         when(userRepository.findByGoogleId("sub-1")).thenReturn(Optional.empty());
-        when(userRepository.existsByEmail("asha@campus.edu")).thenReturn(false);
+        when(userRepository.existsByEmail("asha@thapar.edu")).thenReturn(false);
 
         AuthResponse response = authService.loginWithGoogle(new GoogleLoginRequest("id-token"));
 
@@ -118,7 +119,7 @@ class AuthServiceTest {
         verify(userRepository).save(saved.capture());
         User user = saved.getValue();
         assertEquals(Role.STUDENT, user.getRole());
-        assertEquals("asha@campus.edu", user.getEmail());
+        assertEquals("asha@thapar.edu", user.getEmail());
         assertEquals("sub-1", user.getGoogleId());
         assertEquals(false, passwordEncoder.matches("", user.getPasswordHash()));
         assertEquals("fake.jwt.token", response.token());
@@ -126,25 +127,62 @@ class AuthServiceTest {
 
     @Test
     void returningGoogleUserIsNotCreatedAgain() {
-        User existing = new User("Asha", "asha@campus.edu", "hash", Role.STUDENT, "sub-1");
+        User existing = new User("Asha", "asha@thapar.edu", "hash", Role.STUDENT, "sub-1");
         when(googleTokenVerifier.verify("id-token"))
-                .thenReturn(new GoogleProfile("sub-1", "asha@campus.edu", "Asha"));
+                .thenReturn(new GoogleProfile("sub-1", "asha@thapar.edu", "Asha"));
         when(userRepository.findByGoogleId("sub-1")).thenReturn(Optional.of(existing));
 
         AuthResponse response = authService.loginWithGoogle(new GoogleLoginRequest("id-token"));
 
-        assertEquals("asha@campus.edu", response.user().email());
+        assertEquals("asha@thapar.edu", response.user().email());
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void googleSignInIsRefusedWhenEmailBelongsToPasswordAccount() {
         when(googleTokenVerifier.verify("id-token"))
-                .thenReturn(new GoogleProfile("sub-2", "asha@campus.edu", "Asha"));
+                .thenReturn(new GoogleProfile("sub-2", "asha@thapar.edu", "Asha"));
         when(userRepository.findByGoogleId("sub-2")).thenReturn(Optional.empty());
-        when(userRepository.existsByEmail("asha@campus.edu")).thenReturn(true);
+        when(userRepository.existsByEmail("asha@thapar.edu")).thenReturn(true);
 
         assertThrows(ConflictException.class,
+                () -> authService.loginWithGoogle(new GoogleLoginRequest("id-token")));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void registerRejectsNonThaparEmail() {
+        assertThrows(BadRequestException.class, () ->
+                authService.register(new RegisterRequest("Asha", "asha@gmail.com", "secret123")));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void studentLoginRejectsNonThaparEmail() {
+        User user = new User("Asha", "asha@gmail.com", passwordEncoder.encode("secret123"), Role.STUDENT);
+        when(userRepository.findByEmail("asha@gmail.com")).thenReturn(Optional.of(user));
+
+        assertThrows(BadRequestException.class, () ->
+                authService.login(new LoginRequest("asha@gmail.com", "secret123")));
+    }
+
+    @Test
+    void adminCanLogInWithAnyEmail() {
+        User admin = new User("Admin", "admin@lostfound.com", passwordEncoder.encode("secret123"), Role.ADMIN);
+        when(userRepository.findByEmail("admin@lostfound.com")).thenReturn(Optional.of(admin));
+
+        AuthResponse response = authService.login(new LoginRequest("admin@lostfound.com", "secret123"));
+
+        assertEquals("admin@lostfound.com", response.user().email());
+    }
+
+    @Test
+    void firstGoogleSignInRejectsNonThaparEmail() {
+        when(googleTokenVerifier.verify("id-token"))
+                .thenReturn(new GoogleProfile("sub-3", "asha@gmail.com", "Asha"));
+        when(userRepository.findByGoogleId("sub-3")).thenReturn(Optional.empty());
+
+        assertThrows(BadRequestException.class,
                 () -> authService.loginWithGoogle(new GoogleLoginRequest("id-token")));
         verify(userRepository, never()).save(any(User.class));
     }

@@ -10,6 +10,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { useNotification } from '../hooks/useNotification.js'
 import { getApiError } from '../services/api.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { STUDENT_EMAIL_DOMAIN } from '../utils/constants.js'
 
 export default function Login() {
   usePageTitle('Log in')
@@ -73,6 +74,7 @@ export default function Login() {
           label="Email"
           type="email"
           autoComplete="email"
+          hint={`Students: use your ${STUDENT_EMAIL_DOMAIN} email`}
           value={form.email}
           onChange={update('email')}
           error={error.fieldErrors.email}

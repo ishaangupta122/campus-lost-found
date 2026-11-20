@@ -10,6 +10,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { useNotification } from '../hooks/useNotification.js'
 import { getApiError } from '../services/api.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { STUDENT_EMAIL_DOMAIN } from '../utils/constants.js'
 
 export default function Register() {
   usePageTitle('Sign up')
@@ -28,6 +29,12 @@ export default function Register() {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError({ message: '', fieldErrors: {} })
+
+    // Same rule as the backend, checked here for a quicker message.
+    if (!form.email.trim().toLowerCase().endsWith(STUDENT_EMAIL_DOMAIN)) {
+      setError({ message: '', fieldErrors: { email: `Use your ${STUDENT_EMAIL_DOMAIN} email address` } })
+      return
+    }
 
     // Checked in the browser only; the backend does not need the confirmation.
     if (form.password !== form.confirm) {
@@ -84,6 +91,8 @@ export default function Register() {
           label="Email"
           type="email"
           autoComplete="email"
+          placeholder={`yourname${STUDENT_EMAIL_DOMAIN}`}
+          hint={`Use your ${STUDENT_EMAIL_DOMAIN} email`}
           value={form.email}
           onChange={update('email')}
           error={error.fieldErrors.email}

@@ -15,3 +15,6 @@ export const PERIOD_OPTIONS = [
 
 // Fired on window after an admin approves, rejects or closes something, so the navbar count refreshes.
 export const ADMIN_CHANGED = 'admin-stats-changed'
+
+// Students sign up and log in with their college email (admins are not restricted)
+export const STUDENT_EMAIL_DOMAIN = '@thapar.edu'

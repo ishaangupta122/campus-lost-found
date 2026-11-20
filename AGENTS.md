@@ -12,7 +12,7 @@ Students report lost and found items, other students claim found items, an admin
 |---|---|
 | Create database (once) | `psql -U postgres -f backend/database/create-database.sql` |
 | Run backend | `cd backend && mvn spring-boot:run` |
-| Backend tests (123) | `cd backend && mvn clean test` (needs PostgreSQL and `backend/.env`; tests roll back) |
+| Backend tests (129) | `cd backend && mvn clean test` (needs PostgreSQL and `backend/.env`; tests roll back) |
 | Run frontend | `cd frontend && npm install && npm run dev` |
 | Frontend build check | `cd frontend && npm run build` |
 | Sample data | `psql -U <user> -d campus_lost_found -f backend/database/seed-items.sql` |
@@ -46,6 +46,7 @@ Request path: `controller` -> `service` -> `repository` -> PostgreSQL.
 - **Admins cannot report or claim items.** Never add UI that offers it.
 - An item with claims cannot be deleted (409): close it instead.
 - Everyone who registers is a student. The only way to get an admin is `AdminBootstrap` from `.env`.
+- Students must sign up and log in with a `@thapar.edu` email (form, backend `@Pattern` and `AuthService`, Google sign-in too). The admin can use any email.
 
 ## Conventions
 **Backend:** constructor injection; DTO records, never entities, in the API; services are `@Transactional`; claim decisions lock the item row (`PESSIMISTIC_WRITE`); keep comments short and explain why, not what.

@@ -12,6 +12,7 @@ import com.lostfound.dto.AuthPayloads.GoogleLoginRequest;
 import com.lostfound.dto.AuthPayloads.LoginRequest;
 import com.lostfound.dto.AuthPayloads.RegisterRequest;
 import com.lostfound.dto.UserResponse;
+import com.lostfound.exception.BadRequestException;
 import com.lostfound.exception.ConflictException;
 import com.lostfound.model.Role;
 import com.lostfound.model.User;
@@ -25,6 +26,10 @@ public class AuthService {
 
     // same message for unknown email and wrong password
     private static final String BAD_CREDENTIALS = "Invalid email or password";
+
+    // students must use their college email; admins are not restricted
+    static final String STUDENT_EMAIL_DOMAIN = "@thapar.edu";
+    private static final String STUDENT_DOMAIN_MESSAGE = "Students must use their @thapar.edu email address";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -41,6 +46,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         String email = normalize(request.email());
+        requireStudentDomain(email);
         if (userRepository.existsByEmail(email)) {
             throw new ConflictException("An account with this email already exists");
         }
@@ -55,6 +61,7 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new BadCredentialsException(BAD_CREDENTIALS);
         }
+        requireStudentDomain(user);
         return buildResponse(user);
     }
 
@@ -63,11 +70,13 @@ public class AuthService {
         GoogleProfile profile = googleTokenVerifier.verify(request.idToken());
         User user = userRepository.findByGoogleId(profile.googleId())
                 .orElseGet(() -> createGoogleUser(profile));
+        requireStudentDomain(user);
         return buildResponse(user);
     }
 
     private User createGoogleUser(GoogleProfile profile) {
         String email = normalize(profile.email());
+        requireStudentDomain(email);
         if (userRepository.existsByEmail(email)) {
             throw new ConflictException(
                     "An account with this email already exists. Log in with your email and password instead");
@@ -91,6 +100,20 @@ public class AuthService {
     private AuthResponse buildResponse(User user) {
         return new AuthResponse(jwtService.generateToken(user), "Bearer",
                 jwtService.getExpiresInSeconds(), UserResponse.from(user));
+    }
+
+    /** New students (email signup or first Google sign-in) need a @thapar.edu address. */
+    private void requireStudentDomain(String email) {
+        if (!email.endsWith(STUDENT_EMAIL_DOMAIN)) {
+            throw new BadRequestException(STUDENT_DOMAIN_MESSAGE);
+        }
+    }
+
+    /** Existing students can only log in with a @thapar.edu account; admins can use any email. */
+    private void requireStudentDomain(User user) {
+        if (user.getRole() == Role.STUDENT) {
+            requireStudentDomain(user.getEmail());
+        }
     }
 
     private String normalize(String email) {

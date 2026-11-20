@@ -1,8 +1,8 @@
 -- Resets test data while keeping every registered user (students and admin).
 --
 -- Deletes all claims (pending, approved, rejected, handed over) and all item
--- reports, then reloads the 15 default reports from seed-items.sql and hands
--- them to the first 4 students (by id). If fewer than 4 students exist, the
+-- reports, then reloads the 30 default reports from seed-items.sql and hands
+-- them to the first 8 students (by id). If fewer than 8 students exist, the
 -- remaining sets go to the next students who register.
 --
 -- Run from the project root, as often as you like:

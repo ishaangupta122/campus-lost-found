@@ -1,5 +1,6 @@
--- Sample data for demos: 15 lost/found reports, handed out automatically to
--- the first 4 students who register (4 + 4 + 4 + 3 reports).
+-- Sample data for demos: 30 lost/found reports in 8 sets, handed out
+-- automatically to the first 8 students who register
+-- (students 1-6 get 4 reports each, students 7-8 get 3 each).
 --
 -- Does NOT create any users. Run it before or after students register:
 --   - students who already exist get their reports straight away;
@@ -11,9 +12,10 @@
 --
 -- Notes:
 --   - Only STUDENT accounts get reports; the admin never does.
---   - Students 5 and later get nothing (all 4 sets are taken).
+--   - With 7 students, set 8 waits for the next student; student 9 and later
+--     get nothing (all 8 sets are taken).
 --   - Every report starts OPEN and has no photo (add one by editing the report).
---   - Safe to run again. If the items table is empty, the 4 sets are handed out
+--   - Safe to run again. If the items table is empty, the 8 sets are handed out
 --     again from scratch; otherwise only sets still waiting for a student are.
 --     To start over, use reset-data.sql.
 --   - The helper tables seed_reports and seed_slots are not used by the app.
@@ -21,7 +23,7 @@
 \set ON_ERROR_STOP on
 SET client_min_messages = warning;
 
--- 1. Templates: the 15 reports, split into 4 sets (slots)
+-- 1. Templates: the 30 reports, split into 8 sets (slots)
 CREATE TABLE IF NOT EXISTS seed_reports (
     id          serial PRIMARY KEY,
     slot        int          NOT NULL,
@@ -42,26 +44,47 @@ CREATE TABLE IF NOT EXISTS seed_slots (
 TRUNCATE seed_reports RESTART IDENTITY;
 INSERT INTO seed_reports (slot, item_name, description, category, type, location, days_ago) VALUES
     -- Set 1: first student (4)
-    (1, 'Black Jansport backpack', 'Black backpack with a red keychain on the zip. Contains notebooks and a calculator.', 'Bags',          'LOST',  'Central Library, 2nd floor', 1),
-    (1, 'Samsung earbuds case',    'White earbuds case with a small crack on the lid. Left earbud is missing.',          'Electronics',   'LOST',  'Computer Lab 3',             3),
-    (1, 'Grey hoodie',             'Grey zip-up hoodie, size M, with a university logo on the back.',                    'Clothing',      'FOUND', 'Sports Ground bleachers',    6),
-    (1, 'Prescription glasses',    'Black rectangular frame glasses in a brown hard case.',                              'Other',         'LOST',  'Auditorium, row F',          10),
+    (1, 'Black Jansport backpack', 'Black backpack with a red keychain on the zip. Contains notebooks and a calculator.', 'Bags', 'LOST', 'Central Library, 2nd floor', 1),
+    (1, 'Samsung earbuds case', 'White earbuds case with a small crack on the lid. Left earbud is missing.', 'Electronics', 'LOST', 'Computer Lab 3', 3),
+    (1, 'Grey hoodie', 'Grey zip-up hoodie, size M, with a university logo on the back.', 'Clothing', 'FOUND', 'Sports Ground bleachers', 6),
+    (1, 'Prescription glasses', 'Black rectangular frame glasses in a brown hard case.', 'Other', 'LOST', 'Auditorium, row F', 10),
     -- Set 2: second student (4)
-    (2, 'Blue steel water bottle', 'Blue insulated bottle with a dent near the bottom and a "Go Green" sticker.',       'Water bottles', 'FOUND', 'Main Canteen',               2),
-    (2, 'Hostel room keys',        'Bunch of three keys on a green lanyard with a Hostel B tag.',                        'Keys',          'FOUND', 'Hostel B common room',       4),
-    (2, 'Scientific calculator',   'Casio fx-991EX with initials "A.K." scratched on the back.',                         'Stationery',    'LOST',  'Exam Hall A',                7),
-    (2, 'Silver wristwatch',       'Silver analog watch with a black leather strap. Strap buckle is slightly bent.',     'Other',         'LOST',  'Gym changing room',          9),
+    (2, 'Blue steel water bottle', 'Blue insulated bottle with a dent near the bottom and a "Go Green" sticker.', 'Water bottles', 'FOUND', 'Main Canteen', 2),
+    (2, 'Hostel room keys', 'Bunch of three keys on a green lanyard with a Hostel B tag.', 'Keys', 'FOUND', 'Hostel B common room', 4),
+    (2, 'Scientific calculator', 'Casio fx-991EX with initials "A.K." scratched on the back.', 'Stationery', 'LOST', 'Exam Hall A', 7),
+    (2, 'Silver wristwatch', 'Silver analog watch with a black leather strap. Strap buckle is slightly bent.', 'Other', 'LOST', 'Gym changing room', 9),
     -- Set 3: third student (4)
-    (3, 'Student ID card',         'ID card found near the notice board. Name is partly faded; photo is visible.',      'ID cards',      'FOUND', 'Admin Block entrance',       2),
-    (3, 'Engineering Mathematics textbook', 'Thick blue textbook with handwritten name on the first page.',              'Books',         'LOST',  'Lecture Hall 204',           5),
-    (3, 'Laptop charger',          '65W USB-C charger with a white cable, wrapped with black tape near the plug.',       'Electronics',   'FOUND', 'Cafeteria, corner table',    8),
-    (3, 'Black umbrella',          'Large black foldable umbrella with a wooden handle.',                                'Other',         'FOUND', 'Bus stop near Gate 2',       11),
-    -- Set 4: fourth student (3)
-    (4, 'Brown leather wallet',    'Brown bifold wallet with a metro card and some cash. No ID inside.',                 'Other',         'LOST',  'Parking lot B',              1),
-    (4, 'Pink pencil pouch',       'Pink zip pouch with pens, a highlighter and a small ruler.',                         'Stationery',    'FOUND', 'Seminar Room 1',             3),
-    (4, 'Purple water bottle',     'Purple plastic bottle with a flip lid and a name sticker that has peeled off.',      'Water bottles', 'LOST',  'Basketball court',           5);
+    (3, 'Student ID card', 'ID card found near the notice board. Name is partly faded; photo is visible.', 'ID cards', 'FOUND', 'Admin Block entrance', 2),
+    (3, 'Engineering Mathematics textbook', 'Thick blue textbook with handwritten name on the first page.', 'Books', 'LOST', 'Lecture Hall 204', 5),
+    (3, 'Laptop charger', '65W USB-C charger with a white cable, wrapped with black tape near the plug.', 'Electronics', 'FOUND', 'Cafeteria, corner table', 8),
+    (3, 'Black umbrella', 'Large black foldable umbrella with a wooden handle.', 'Other', 'FOUND', 'Bus stop near Gate 2', 11),
+    -- Set 4: fourth student (4)
+    (4, 'Brown leather wallet', 'Brown bifold wallet with a metro card and some cash. No ID inside.', 'Other', 'LOST', 'Parking lot B', 1),
+    (4, 'Pink pencil pouch', 'Pink zip pouch with pens, a highlighter and a small ruler.', 'Stationery', 'FOUND', 'Seminar Room 1', 3),
+    (4, 'Purple water bottle', 'Purple plastic bottle with a flip lid and a name sticker that has peeled off.', 'Water bottles', 'LOST', 'Basketball court', 5),
+    (4, 'Navy blue blazer', 'Navy blazer, size L, with a pen still clipped in the inner pocket.', 'Clothing', 'FOUND', 'Placement Cell waiting area', 12),
+    -- Set 5: fifth student (4)
+    (5, 'Sling bag', 'Small olive-green sling bag with a broken buckle. Has a bus pass inside.', 'Bags', 'FOUND', 'Library entrance shoe rack', 2),
+    (5, 'Data Structures notes', 'Spiral notebook with handwritten DSA notes and a red cover.', 'Books', 'LOST', 'Lecture Hall 101', 4),
+    (5, 'Bike keys', 'Two-wheeler key with a small rubber duck keychain.', 'Keys', 'LOST', 'Two-wheeler parking near Gate 1', 6),
+    (5, 'Power bank', 'Black 10000mAh power bank with a scratched front and a short USB-C cable.', 'Electronics', 'FOUND', 'Mechanical workshop', 9),
+    -- Set 6: sixth student (4)
+    (6, 'Wireless mouse', 'Grey Logitech wireless mouse; the USB receiver is missing.', 'Electronics', 'LOST', 'Computer Lab 1', 1),
+    (6, 'Library card', 'Library card in a clear plastic sleeve, slightly bent at one corner.', 'ID cards', 'FOUND', 'Reading room, table 7', 3),
+    (6, 'White sports shoes', 'Pair of white running shoes, size 9, in a black drawstring bag.', 'Clothing', 'LOST', 'Swimming pool changing room', 7),
+    (6, 'Steel lunch box', 'Two-tier steel tiffin with a blue cloth cover.', 'Other', 'FOUND', 'Department of Physics corridor', 10),
+    -- Set 7: seventh student (3)
+    (7, 'Drawing kit', 'Engineering drawing kit with a mini drafter, compass and set squares.', 'Stationery', 'LOST', 'Drawing Hall 2', 2),
+    (7, 'Red cap', 'Red baseball cap with a white embroidered logo on the front.', 'Clothing', 'FOUND', 'Football ground', 5),
+    (7, 'Physics lab manual', 'Lab manual with a yellow cover; several pages have graph sheets stapled in.', 'Books', 'FOUND', 'Physics Lab', 8),
+    -- Set 8: eighth student (3)
+    (8, 'Laptop sleeve', 'Grey 14-inch felt laptop sleeve with a small coffee stain.', 'Bags', 'LOST', 'Old Library reading area', 1),
+    (8, 'Locker key', 'Single small silver key with a number tag reading "42".', 'Keys', 'FOUND', 'Sports Complex lockers', 4),
+    (8, 'Green flask', 'Dark green steel flask with a cup lid. Has a few scratches on the side.', 'Water bottles', 'LOST', 'Night canteen', 6);
 
-INSERT INTO seed_slots (slot) VALUES (1), (2), (3), (4) ON CONFLICT (slot) DO NOTHING;
+INSERT INTO seed_slots (slot) VALUES (1), (2), (3), (4), (5), (6), (7), (8) ON CONFLICT (slot) DO NOTHING;
+-- Drop slots that no longer have reports (e.g. from an older version of this file)
+DELETE FROM seed_slots WHERE slot NOT IN (SELECT DISTINCT slot FROM seed_reports);
 
 -- 2. Hands each waiting set to the next student (by id) who has no set yet
 CREATE OR REPLACE FUNCTION seed_assign_reports() RETURNS void

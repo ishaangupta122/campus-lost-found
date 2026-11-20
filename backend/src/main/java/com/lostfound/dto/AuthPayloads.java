@@ -2,6 +2,7 @@ package com.lostfound.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /** Request and response bodies of the /api/auth endpoints. */
@@ -26,6 +27,8 @@ public final class AuthPayloads {
 
             @NotBlank(message = "Email is required")
             @Email(message = "Email must be a valid address")
+            @Pattern(regexp = "(?i)^\\s*[^@\\s]+@thapar\\.edu\\s*$",
+                     message = "Use your @thapar.edu email address")
             @Size(max = 150, message = "Email must be at most 150 characters")
             String email,
 

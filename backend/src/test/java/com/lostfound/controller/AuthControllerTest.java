@@ -45,7 +45,7 @@ class AuthControllerTest {
 
     private AuthResponse sampleAuthResponse() {
         return new AuthResponse("fake.jwt.token", "Bearer", 3600,
-                new UserResponse(1L, "Asha", "asha@campus.edu", Role.STUDENT, false, LocalDateTime.now()));
+                new UserResponse(1L, "Asha", "asha@thapar.edu", Role.STUDENT, false, LocalDateTime.now()));
     }
 
     @Test
@@ -54,7 +54,7 @@ class AuthControllerTest {
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Asha\",\"email\":\"asha@campus.edu\",\"password\":\"secret123\"}"))
+                        .content("{\"name\":\"Asha\",\"email\":\"asha@thapar.edu\",\"password\":\"secret123\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").value("fake.jwt.token"))
                 .andExpect(jsonPath("$.user.role").value("STUDENT"));
@@ -77,7 +77,7 @@ class AuthControllerTest {
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"asha@campus.edu\",\"password\":\"wrong\"}"))
+                        .content("{\"email\":\"asha@thapar.edu\",\"password\":\"wrong\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
@@ -92,11 +92,11 @@ class AuthControllerTest {
     @Test
     void meWithTokenReturnsCurrentUser() throws Exception {
         when(authService.getCurrentUser(1L))
-                .thenReturn(new UserResponse(1L, "Asha", "asha@campus.edu", Role.STUDENT, false, LocalDateTime.now()));
+                .thenReturn(new UserResponse(1L, "Asha", "asha@thapar.edu", Role.STUDENT, false, LocalDateTime.now()));
 
         mockMvc.perform(get("/api/auth/me").with(jwt().jwt(token -> token.subject("1"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("asha@campus.edu"));
+                .andExpect(jsonPath("$.email").value("asha@thapar.edu"));
     }
 
     @Test

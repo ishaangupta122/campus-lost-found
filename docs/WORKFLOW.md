@@ -6,7 +6,7 @@ A campus lost and found. Students post what they lost or found, other students a
 
 | Person | What they can do |
 |---|---|
-| **Guest** (not logged in) | Look at items and search. Create an account or log in. |
+| **Guest** (not logged in) | Look at items and search. Create an account (with a @thapar.edu email) or log in. |
 | **Student** | Post lost or found reports, edit or close their own reports, ask for a found item, and see their own reports and requests. |
 | **Admin** | See everything, decide who gets a found item, close reports, and see all users. Admins do not post or ask for items. |
 

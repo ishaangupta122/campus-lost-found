@@ -38,7 +38,7 @@ class ItemSearchTest {
     void saveSampleItems() {
         token = UUID.randomUUID().toString().replace("-", "");
         User reporter = userRepository.save(
-                new User("Tester", "tester-" + token + "@campus.edu", "hash", Role.STUDENT));
+                new User("Tester", "tester-" + token + "@thapar.edu", "hash", Role.STUDENT));
 
         // A: found, library, bags, open - token in the NAME
         itemRepository.save(new Item("Backpack " + token, "Blue", "Bags", ItemType.FOUND,

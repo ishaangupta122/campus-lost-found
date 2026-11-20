@@ -121,7 +121,7 @@ class ApplicationTests {
 
     @Test
     void registeringTwiceWithTheSameEmailGivesConflict() throws Exception {
-        String email = "dup-" + UUID.randomUUID() + "@example.com";
+        String email = "dup-" + UUID.randomUUID() + "@thapar.edu";
         String body = "{\"name\":\"Dup\",\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}";
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().is2xxSuccessful());
@@ -131,7 +131,7 @@ class ApplicationTests {
 
     @Test
     void wrongPasswordIsUnauthorized() throws Exception {
-        String email = "wrong-" + UUID.randomUUID() + "@example.com";
+        String email = "wrong-" + UUID.randomUUID() + "@thapar.edu";
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"W\",\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
                 .andExpect(status().is2xxSuccessful());
@@ -140,8 +140,26 @@ class ApplicationTests {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void registeringWithANonThaparEmailIsRejected() throws Exception {
+        String email = "outsider-" + UUID.randomUUID() + "@gmail.com";
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"O\",\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.email").exists());
+    }
+
+    @Test
+    void studentWithOldGmailAddressCannotLogIn() throws Exception {
+        String email = "old-" + UUID.randomUUID() + "@gmail.com";
+        userRepository.save(new User("Old", email, passwordEncoder.encode(PASSWORD), Role.STUDENT));
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
     private String registerAndLogin(String name) throws Exception {
-        String email = name.toLowerCase() + "-" + UUID.randomUUID() + "@example.com";
+        String email = name.toLowerCase() + "-" + UUID.randomUUID() + "@thapar.edu";
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"" + name + "\",\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
                 .andExpect(status().is2xxSuccessful());

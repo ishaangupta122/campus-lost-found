@@ -39,7 +39,7 @@ class RepositoryTest {
     private ClaimRepository claimRepository;
 
     private User newUser(String name) {
-        String email = name.toLowerCase() + "-" + UUID.randomUUID() + "@campus.edu";
+        String email = name.toLowerCase() + "-" + UUID.randomUUID() + "@thapar.edu";
         return userRepository.save(new User(name, email, "hash", Role.STUDENT));
     }
 

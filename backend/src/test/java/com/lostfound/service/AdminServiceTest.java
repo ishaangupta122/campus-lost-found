@@ -73,14 +73,14 @@ class AdminServiceTest {
 
     @Test
     void adminSeesAllUsersWithoutPasswordData() {
-        User student = new User("Asha", "asha@campus.edu", "hash", Role.STUDENT);
-        User admin = new User("Admin", "admin@campus.edu", "hash", Role.ADMIN);
+        User student = new User("Asha", "asha@thapar.edu", "hash", Role.STUDENT);
+        User admin = new User("Admin", "admin@lostfound.com", "hash", Role.ADMIN);
         when(userRepository.findAll(any(Sort.class))).thenReturn(List.of(student, admin));
 
         List<UserResponse> users = adminService.listUsers();
 
         assertEquals(2, users.size());
-        assertEquals("asha@campus.edu", users.get(0).email());
+        assertEquals("asha@thapar.edu", users.get(0).email());
         assertEquals(Role.STUDENT, users.get(0).role());
         assertFalse(users.get(0).googleAccount());
     }

@@ -28,7 +28,7 @@ class GoogleTokenVerifierTest {
                 .subject("google-sub-123")
                 .claim("iss", "https://accounts.google.com")
                 .claim("aud", List.of(CLIENT_ID))
-                .claim("email", "asha@campus.edu")
+                .claim("email", "asha@thapar.edu")
                 .claim("email_verified", true)
                 .claim("name", "Asha Rao");
     }
@@ -45,7 +45,7 @@ class GoogleTokenVerifierTest {
         GoogleTokenVerifier.GoogleProfile profile = verifierReturning(token().build()).verify("good-token");
 
         assertEquals("google-sub-123", profile.googleId());
-        assertEquals("asha@campus.edu", profile.email());
+        assertEquals("asha@thapar.edu", profile.email());
         assertEquals("Asha Rao", profile.name());
     }
 
